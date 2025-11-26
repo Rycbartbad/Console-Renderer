@@ -11,7 +11,7 @@ public:
     explicit RubikCube(float length);
     static void control(Vec3* blocks, std::vector<Mesh>& meshes);
 
-    Vec3 blocks[27];
+    Vec3 block_indices[27];
     std::vector<Mesh> meshes;
 
 private:

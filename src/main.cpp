@@ -13,7 +13,7 @@
 
     while (true) {
         render.update();
-        RubikCube::control(cube.blocks, render.meshes);
+        RubikCube::control(cube.block_indices, render.meshes);
         Sleep(10);
     }
 }

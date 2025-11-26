@@ -7,7 +7,7 @@ RubikCube::RubikCube(float length) {
     const float len = length / 3;
     for (int i = 0; i < 27; ++i) {
         meshes.emplace_back(gen_block(Vec4(i % 3 - 1, i / 3 % 3 - 1, i / 9 - 1, 1), len));
-        blocks[i] = Vec3(i % 3 - 1, i / 3 % 3 - 1, i / 9 - 1);
+        block_indices[i] = Vec3(i % 3 - 1, i / 3 % 3 - 1, i / 9 - 1);
     }
 }
 
