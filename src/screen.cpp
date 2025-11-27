@@ -2,7 +2,6 @@
 #include <iostream>
 #include <windows.h>
 
-// 静态成员初始化
 clock_t Screen::start_t = 0;
 clock_t Screen::end_t = 0;
 int Screen::counter_t = 0;
