@@ -1,5 +1,6 @@
 #include "rubik_cube.h"
 #include "transform.h"
+#include "mesh.h"
 #include <conio.h>
 #include <windows.h>
 
@@ -41,7 +42,7 @@ Mesh RubikCube::gen_block(const Vec4& pos, float len) {
     return Mesh::Cube(pos * (len + 0.1f), len / 2, colors);
 }
 
-void RubikCube::control(Vec3* blocks, std::vector<Mesh>& meshes) {
+void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> meshes) {
     static Vec4 axis_base[3] = {
         Vec4(1, 0, 0, 0),
         Vec4(0, 1, 0, 0),
@@ -119,11 +120,10 @@ void RubikCube::control(Vec3* blocks, std::vector<Mesh>& meshes) {
         }
         
         if (rotate) {
-            auto mhs = std::ref(meshes);
             constexpr int times = 1;
             for (int n = 0; n < 9; ++n) {
                 for (const auto& i : blk) {
-                    Transform::rotate(mhs.get()[i], axis, pi/18);
+                    Transform::rotate(meshes[i], axis, pi/18);
                 }
                 Sleep(times);
             }

@@ -4,21 +4,22 @@
 #include <thread>
 #include <windows.h>
 
-Render::Render() {
+Renderer::Renderer() {
     Screen::init();
     show = false;
+    mesh_num = 0;
 }
 
-void Render::update() {
+void Renderer::update() {
     screen.update();
     camera.update(screen);
 }
 
-void Render::toggle_fps() {
+void Renderer::toggle_fps() {
     show = true;
 }
 
-void Render::set_aa(AA aa) {
+void Renderer::set_aa(AA aa) {
     switch (aa) {
         case SSAA:
             screen.SSAA = true;
@@ -28,11 +29,11 @@ void Render::set_aa(AA aa) {
     }
 }
 
-void Render::set_camera_pos(const Vec4& pos) {
+void Renderer::set_camera_pos(const Vec4& pos) {
     camera.pos = pos;
 }
 
-void Render::launch(int threads) {
+void Renderer::launch(const int threads) {
     for (int i = 0; i < threads; i++) {
         std::thread(ShadeCycle, std::ref(meshes), std::ref(camera), std::ref(show),
                    std::ref(screen.SSAA), std::ref(screen.width), std::ref(screen.height),
@@ -40,7 +41,24 @@ void Render::launch(int threads) {
     }
 }
 
-[[noreturn]] void Render::ShadeCycle(const std::vector<Mesh>& meshes, const Camera& camera,
+ID Renderer::add_meshes(const std::vector<Mesh>& _meshes) {
+    const int begin = mesh_num;
+    for (auto mesh : _meshes) {
+        meshes.emplace_back(std::move(mesh));
+        ++mesh_num;
+    }
+    return ID(begin, mesh_num);
+}
+
+std::vector<Mesh*> Renderer::operate_meshes(const ID id) {
+    std::vector<Mesh*> mesh;
+    for (int i = 0; i < id.end - id.begin; i++) {
+        mesh.emplace_back(&meshes[i]);
+    }
+    return mesh;
+}
+
+[[noreturn]] void Renderer::ShadeCycle(const std::vector<Mesh>& meshes, const Camera& camera,
                                    const bool& show_fps, const bool& SSAA, const int& width,
                                    const int& height, const bool& bias) {
     Screen screen;

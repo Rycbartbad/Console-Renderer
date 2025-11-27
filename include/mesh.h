@@ -4,7 +4,8 @@
 #include "math_utils.h"
 #include <vector>
 
-struct Mesh {
+class Mesh {
+public:
     Vec4 center;
     std::vector<Vec4> vertices;
     std::vector<Vec3> colors;

@@ -9,14 +9,21 @@
 
 enum AA { SSAA };
 
-class Render {
+struct ID {
+    int begin;
+    int end;
+};
+
+class Renderer{
 public:
-    Render();
+    Renderer();
     void update();
     void toggle_fps();
     void set_aa(AA aa);
     void set_camera_pos(const Vec4& pos);
     void launch(int threads);
+    ID add_meshes(const std::vector<Mesh> &_meshes);
+    std::vector<Mesh*> operate_meshes(ID id);
 
     Camera camera;
     std::vector<Mesh> meshes;
@@ -28,5 +35,6 @@ private:
 
     bool show;
     Screen screen;
+    int mesh_num;
 };
 #endif //PROJECT_RENDER_H
