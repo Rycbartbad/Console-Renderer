@@ -10,9 +10,6 @@ public:
     static void rotate(Mesh& mesh, const Vec4& center, Vec4 axis, float angle);
     static void rotate(Mesh& mesh, Vec4 axis, float angle);
 
-    static void rotate(Mesh *mesh, const Vec4 &center, Vec4 axis, float angle);
-
-    static void rotate(Mesh *mesh, Vec4 axis, float angle);
 
     static void rotate(Vec4& dir, Vec4 axis, float angle);
     static void rotate(Vec3& point, Vec4 axis, float angle);

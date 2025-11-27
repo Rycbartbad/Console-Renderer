@@ -7,7 +7,7 @@
 
     renderer.toggle_fps();
     renderer.set_aa(SSAA);
-    ID rubik_cube_id = renderer.add_meshes(cube.meshes);
+    const ID rubik_cube_id = renderer.add_meshes(cube.meshes);
     renderer.set_camera_pos(Vec4(0, 0, -10, 1));
     renderer.launch(2);
 

@@ -31,24 +31,6 @@ void Transform::rotate(Mesh& mesh, Vec4 axis, float angle) {
     }
 }
 
-void Transform::rotate(Mesh* mesh, const Vec4& center, Vec4 axis, float angle) {
-    axis.normalize();
-    translate(*mesh, center * (-1));
-    for (auto& i : mesh->vertices) {
-        i = i * cos(angle) + axis.cross3(i) * sin(angle) + axis * (axis * i) * (1 - cos(angle));
-        i.w = 1;
-    }
-    translate(*mesh, center);
-}
-
-void Transform::rotate(Mesh* mesh, Vec4 axis, float angle) {
-    axis.normalize();
-    for (auto& i : mesh->vertices) {
-        i = i * cos(angle) + axis.cross3(i) * sin(angle) + axis * (axis * i) * (1 - cos(angle));
-        i.w = 1;
-    }
-}
-
 void Transform::rotate(Vec4& dir, Vec4 axis, float angle) {
     axis.normalize();
     dir = dir * cos(angle) + axis.cross3(dir) * sin(angle) + axis * (axis * dir) * (1 - cos(angle));
