@@ -44,7 +44,7 @@ void Renderer::launch(const int threads) {
 ID Renderer::add_meshes(const std::vector<Mesh>& _meshes) {
     const int begin = mesh_num;
     for (auto mesh : _meshes) {
-        meshes.emplace_back(std::move(mesh));
+        meshes.emplace_back(mesh);
         ++mesh_num;
     }
     return ID(begin, mesh_num);

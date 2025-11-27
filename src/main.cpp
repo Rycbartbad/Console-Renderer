@@ -3,17 +3,19 @@
 
 [[noreturn]] int main() {
     auto cube = RubikCube(5);
-    Renderer renderer;
+    Renderer r;
 
-    renderer.toggle_fps();
-    renderer.set_aa(SSAA);
-    const ID rubik_cube_id = renderer.add_meshes(cube.meshes);
-    renderer.set_camera_pos(Vec4(0, 0, -10, 1));
-    renderer.launch(2);
+    r.toggle_fps();
+    r.set_aa(SSAA);
+    const ID rubik_cube_id = r.add_meshes(cube.meshes);
+    r.set_camera_pos(Vec4(0, 0, -10, 1));
+    r.launch(2);
 
+    const auto rubik_indices = cube.block_indices;
+    const auto rubik_mesh = r.operate_meshes(rubik_cube_id);
     while (true) {
-        renderer.update();
-        RubikCube::control(cube.block_indices, renderer.operate_meshes(rubik_cube_id));
+        r.update();
+        RubikCube::control(rubik_indices, rubik_mesh);
         Sleep(10);
     }
 }
