@@ -60,7 +60,7 @@ void Screen::draw() {
     int x = 0;
     if (show_fps) {
         x = ("FPS:" + std::to_string(fps)).size() / 2;
-        output_buf = "\033[3J\033[HFPS:" + std::to_string(fps);
+        output_buf = "\033[3J\033[H\033[mFPS:" + std::to_string(fps);
         if (std::to_string(fps).size() % 2 != 0) {
             ++x;
             output_buf += " ";

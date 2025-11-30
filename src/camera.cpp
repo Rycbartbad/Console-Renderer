@@ -4,28 +4,26 @@
 #include "graphics.h"
 #include <windows.h>
 #include <cmath>
+#include <variant>
 
 Camera::Camera() {
     width = height = 1;
     n = 1;
-    n2w = n2h = n * 2;
     f = 100;
     pos = Vec4(0, 0, 0, 1);
     a_x = a_y = 0;
-    fov_h = fov_v = 0;
     GetCursorPos(&p1);
     p2 = p1;
 }
 
-void Camera::update(const Screen& screen) {
+void Camera::update_from(const Screen& screen) {
     width = screen.width / static_cast<float>(screen.height);
-    n2w = n * 2 / width;
 }
 
 void Camera::load(Screen& screen, const Mesh& mesh) const {
     std::vector<Vec4> vertices;
     for (auto& i : mesh.vertices) {
-        vertices.emplace_back(i.x * n2w, -i.y * n2h, (i.z * (f + n) - 2 * n * f) / (f - n), i.z);
+        vertices.emplace_back(i.x * n * 2 / width, -i.y * n * 2, (i.z * (f + n) - 2 * n * f) / (f - n), i.z);
     }
     
     Vec3 color;
@@ -65,7 +63,7 @@ void Camera::load(Screen& screen, const Mesh& mesh) const {
                 Triangle::scan_draw(screen, O,
                     Vec2(clipped_vertices[j].x * 0.5 * screen.width, clipped_vertices[j].y * 0.5 * screen.height),
                     Vec2(clipped_vertices[j + 1].x * 0.5 * screen.width, clipped_vertices[j + 1].y * 0.5 * screen.height), 
-                    color, v_z, f, n);
+                    color, v_z);
             }
         }
     }
@@ -99,7 +97,7 @@ void Camera::division(Vec4& i) {
 }
 
 void Camera::controller() {
-    const float speed = 0.1f;
+    constexpr float speed = 0.1f;
     if (GetAsyncKeyState('W') & 0x8000)
         Transform::translate(pos, Vec4(-sin(a_x), 0, cos(a_x), 0) * speed);
     if (GetAsyncKeyState('S') & 0x8000)
@@ -114,7 +112,7 @@ void Camera::controller() {
         Transform::translate(pos, Vec4(0, -1, 0, 0) * speed);
 
     GetCursorPos(&p1);
-    const float angel_x = (p2.x - p1.x) * pi / 360.0f;
+    const float angel_x = (p1.x - p2.x) * pi / 360.0f;
     const float angel_y = (p1.y - p2.y) * pi / 360.0f;
     p2 = p1;
     
@@ -128,4 +126,13 @@ void Camera::controller() {
     if (a_y + angel_y < pi / 2 && a_y + angel_y > -pi / 2) {
         a_y += angel_y;
     }
+    dir = get_dir();
+}
+
+Vec4 Camera::get_dir() const {
+    auto dir = Vec4(0,0,1,0);
+    Transform::rotate(dir, Vec4(0, 0, 1, 0), a_y);
+    Transform::rotate(dir, Vec4(0, 1, 0, 0), a_x);
+    dir.normalize();
+    return dir;
 }

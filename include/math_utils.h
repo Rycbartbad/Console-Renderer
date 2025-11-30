@@ -9,7 +9,7 @@ constexpr float pi = 3.14159f;
 class Vec2 {
 public:
     Vec2() : x(0), y(0) {}
-    Vec2(int x, int y) : x(x), y(y) {}
+    Vec2(const int x, const int y) : x(x), y(y) {}
 
     Vec2 operator+(const Vec2& b) const { return { x + b.x, y + b.y }; }
     Vec2 operator-(const Vec2& b) const { return { x - b.x, y - b.y }; }
@@ -23,8 +23,7 @@ public:
 class Vec3 {
 public:
     Vec3() : x(0), y(0), z(0) {}
-    Vec3(int x, int y, int z) : x(x), y(y), z(z) {}
-    Vec3(short x, short y, short z) : x(x), y(y), z(z) {}
+    Vec3(const int x, const int y, const int z) : x(x), y(y), z(z) {}
 
     Vec3 operator+(const Vec3& b) const { return { x + b.x, y + b.y, z + b.z }; }
     Vec3 operator-(const Vec3& b) const { return { x - b.x, y - b.y, z - b.z }; }
@@ -34,13 +33,13 @@ public:
 
     bool operator==(const Vec3& b) const { return x == b.x && y == b.y && z == b.z; }
 
-    short x, y, z;
+    int x, y, z;
 };
 
 class Vec4 {
 public:
     Vec4() : x(0), y(0), z(0), w(0) {}
-    Vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+    Vec4(const float x, const float y, const float z, const float w) : x(x), y(y), z(z), w(w) {}
 
     Vec4 operator+(const Vec4& b) const { return { x + b.x, y + b.y, z + b.z, 1 }; }
     Vec4 operator-(const Vec4& b) const { return { x - b.x, y - b.y, z - b.z, 1 }; }
@@ -50,7 +49,7 @@ public:
     Vec3 to_vec3() const { return { static_cast<short>(round(x)), static_cast<short>(round(y)), static_cast<short>(round(z)) }; }
 
     void normalize() {
-        float sum = sqrt(x * x + y * y + z * z);
+        const float sum = sqrt(x * x + y * y + z * z);
         if (sum > 0.00001f) {
             x /= sum; y /= sum; z /= sum;
         }

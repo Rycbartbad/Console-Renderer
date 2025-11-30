@@ -19,21 +19,17 @@ public:
     Renderer();
     void update();
     void toggle_fps();
-    void set_aa(AA aa);
-    void set_camera_pos(const Vec4& pos);
-    void launch(int threads);
-    ID add_meshes(const std::vector<Mesh> &_meshes);
-    std::vector<Mesh*> operate_meshes(ID id);
-
-    Camera camera;
-    std::vector<Mesh> meshes;
+    void set_aa(AA);
+    void set_camera_pos(const Vec4&);
+    void init_controller();
+    void launch(int);
+    ID add_meshes(const std::vector<Mesh>&);
+    std::vector<Mesh*> operate_meshes(ID);
 
 private:
-    [[noreturn]] static void ShadeCycle(const std::vector<Mesh>& meshes, const Camera& camera,
-                                   const bool& show_fps, const bool& SSAA, const int& width,
-                                   const int& height, const bool& bias);
-
-    bool show;
+    [[noreturn]] void ShadeCycle() const;
+    Camera camera;
+    std::vector<Mesh> meshes;
     Screen screen;
     int mesh_num;
 };

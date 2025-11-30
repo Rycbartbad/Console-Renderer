@@ -15,7 +15,8 @@
     const auto rubik_mesh = r.operate_meshes(rubik_cube_id);
     while (true) {
         r.update();
-        RubikCube::control(rubik_indices, rubik_mesh);
+        // RubikCube::control(rubik_indices, rubik_mesh);
+        r.init_controller();
         Sleep(10);
     }
 }

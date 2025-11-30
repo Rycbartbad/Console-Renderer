@@ -6,17 +6,16 @@
 
 Renderer::Renderer() {
     Screen::init();
-    show = false;
     mesh_num = 0;
 }
 
 void Renderer::update() {
     screen.update();
-    camera.update(screen);
+    camera.update_from(screen);
 }
 
 void Renderer::toggle_fps() {
-    show = true;
+    screen.show_fps = !screen.show_fps;
 }
 
 void Renderer::set_aa(AA aa) {
@@ -35,15 +34,13 @@ void Renderer::set_camera_pos(const Vec4& pos) {
 
 void Renderer::launch(const int threads) {
     for (int i = 0; i < threads; i++) {
-        std::thread(ShadeCycle, std::ref(meshes), std::ref(camera), std::ref(show),
-                   std::ref(screen.SSAA), std::ref(screen.width), std::ref(screen.height),
-                   std::ref(screen.bias)).detach();
+        std::thread(&Renderer::ShadeCycle, this).detach();
     }
 }
 
 ID Renderer::add_meshes(const std::vector<Mesh>& _meshes) {
     const int begin = mesh_num;
-    for (auto mesh : _meshes) {
+    for (const auto& mesh : _meshes) {
         meshes.emplace_back(mesh);
         ++mesh_num;
     }
@@ -58,29 +55,33 @@ std::vector<Mesh*> Renderer::operate_meshes(const ID id) {
     return mesh;
 }
 
-[[noreturn]] void Renderer::ShadeCycle(const std::vector<Mesh>& meshes, const Camera& camera,
-                                   const bool& show_fps, const bool& SSAA, const int& width,
-                                   const int& height, const bool& bias) {
-    Screen screen;
+void Renderer::init_controller() {
+    camera.controller();
+}
+
+
+[[noreturn]] void Renderer::ShadeCycle() const {
+    Screen new_screen;
 
     while (true) {
-        screen.show_fps = show_fps;
-        screen.SSAA = SSAA;
-        if (screen.width != width || screen.height != height || screen.bias != bias) {
-            screen.width = width;
-            screen.height = height;
-            screen.bias = bias;
+        new_screen.show_fps = screen.show_fps;
+            new_screen.SSAA = screen.SSAA;
+        if (new_screen.width != screen.width || new_screen.height != screen.height || new_screen.bias != screen.bias) {
+            new_screen.width = screen.width;
+            new_screen.height = screen.height;
+            new_screen.bias = screen.bias;\
+
         }
-        screen.clear();
+        new_screen.clear();
         for (auto mesh : meshes) {
             Transform::translate(mesh, camera.pos * (-1));
-            Transform::rotate(mesh, Vec4(0, 1, 0, 0), camera.a_x);
+            Transform::rotate(mesh, Vec4(0, 1, 0, 0), -camera.a_x);
             Transform::rotate(mesh, Vec4(1, 0, 0, 0), -camera.a_y);
 
-            camera.load(screen, mesh);
+            camera.load(new_screen, mesh);
         }
         Screen::calculate_fps();
-        screen.draw();
-        screen.show();
+        new_screen.draw();
+        new_screen.show();
     }
 }
