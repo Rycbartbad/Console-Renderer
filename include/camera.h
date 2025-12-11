@@ -1,9 +1,10 @@
 
 #ifndef PROJECT_CAMERA_H
 #define PROJECT_CAMERA_H
-#pragma once
 #include "math_utils.h"
 #include "mesh.h"
+#include "light.h"
+#include "graphics.h"
 #include <windows.h>
 
 class Screen;
@@ -12,7 +13,7 @@ class Camera {
 public:
     Camera();
     void update_from(const Screen& screen);
-    void load(Screen& screen, const Mesh& mesh) const;
+    void load(Screen& screen, const Mesh& mesh, const std::vector<Light>& lights) const;
     void controller();
     [[nodiscard]] Vec4 get_dir() const;
 

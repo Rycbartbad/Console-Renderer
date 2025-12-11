@@ -1,7 +1,6 @@
 
 #ifndef PROJECT_SCREEN_H
 #define PROJECT_SCREEN_H
-#pragma once
 #include "math_utils.h"
 #include <string>
 #include <vector>
@@ -12,7 +11,7 @@ public:
     Screen();
     static void init();
     void update();
-    void set_pixel(int x, int y, const Vec3& color, float z);
+    void set_pixel(const int& x, const int& y, const Vec3& color, const float& z);
     void clear();
     void draw();
     static void calculate_fps();

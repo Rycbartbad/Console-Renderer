@@ -4,7 +4,7 @@
 #include <conio.h>
 #include <windows.h>
 
-RubikCube::RubikCube(float length) {
+RubikCube::RubikCube(const float length) {
     const float len = length / 3;
     for (int i = 0; i < 27; ++i) {
         meshes.emplace_back(gen_block(Vec4(i % 3 - 1, i / 3 % 3 - 1, i / 9 - 1, 1), len));
@@ -12,7 +12,8 @@ RubikCube::RubikCube(float length) {
     }
 }
 
-Mesh RubikCube::gen_block(const Vec4& pos, float len) {
+Mesh RubikCube::gen_block(const Vec4& pos, const float len) {
+    constexpr Material material = {0.65, 1.2, 0.3};
     const Vec3 color[6] = {
         Vec3(255,0,0),    // 红
         Vec3(0,255,0),    // 绿
@@ -39,7 +40,7 @@ Mesh RubikCube::gen_block(const Vec4& pos, float len) {
     else if (pos.z == 1)
         colors[2] = color[2]; // 前面橙色
         
-    return Mesh::Cube(pos * (len + 0.1f), len / 2, colors);
+    return Mesh::Cube(pos * len * 1.04f, len / 2, colors, material);
 }
 
 void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {

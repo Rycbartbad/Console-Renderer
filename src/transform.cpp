@@ -13,7 +13,7 @@ void Transform::translate(Vec4& pos, const Vec4& translation) {
     pos = pos + translation;
 }
 
-void Transform::rotate(Mesh& mesh, const Vec4& center, Vec4 axis, float angle) {
+void Transform::rotate(Mesh& mesh, const Vec4& center, Vec4 axis, const float angle) {
     axis.normalize();
     translate(mesh, center * (-1));
     for (auto& i : mesh.vertices) {

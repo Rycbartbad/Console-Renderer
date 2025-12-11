@@ -20,20 +20,14 @@ void Camera::update_from(const Screen& screen) {
     width = screen.width / static_cast<float>(screen.height);
 }
 
-void Camera::load(Screen& screen, const Mesh& mesh) const {
+void Camera::load(Screen& screen, const Mesh& mesh, const std::vector<Light>& lights) const {
     std::vector<Vec4> vertices;
     for (auto& i : mesh.vertices) {
         vertices.emplace_back(i.x * n * 2 / width, -i.y * n * 2, (i.z * (f + n) - 2 * n * f) / (f - n), i.z);
     }
-    
-    Vec3 color;
+
     for (int i = 0; i + 2 < mesh.indices.size(); i += 3) {
-        if (mesh.colors.size() == 1)
-            color = mesh.colors[0];
-        else if (mesh.colors.size() * 3 == mesh.indices.size())
-            color = mesh.colors[i / 3];
-        else if (mesh.colors.size() * 6 == mesh.indices.size())
-            color = mesh.colors[i / 6];
+        Vec3 color = mesh.colors[i];
             
         if (vertices[mesh.indices[i]].z < 1 && vertices[mesh.indices[i + 1]].z < 1 && vertices[mesh.indices[i + 2]].z < 1) 
             continue;
@@ -45,7 +39,13 @@ void Camera::load(Screen& screen, const Mesh& mesh) const {
         for (auto& j : near_clip(vertices[mesh.indices[i + 2]], vertices[mesh.indices[i]])) {
             clipped_vertices.emplace_back(j);
         }
-        
+        auto before_div = clipped_vertices;
+        for (auto& v : before_div) {
+            v.x *= width / n / 2;
+            v.y /= n * -2;
+            v.z = v.w;
+            v.w = 1;
+        }
         if (!clipped_vertices.empty()) {
             division(clipped_vertices[0]);
             division(clipped_vertices[1]);
@@ -59,11 +59,11 @@ void Camera::load(Screen& screen, const Mesh& mesh) const {
                     (clipped_vertices[j].y - clipped_vertices[0].y) * (clipped_vertices[j + 1].x - clipped_vertices[0].x) > 0)
                     continue;
                     
-                const float v_z[3] = { clipped_vertices[0].z, clipped_vertices[j].z, clipped_vertices[j + 1].z };
+                const Vec4 v[3] = { before_div[0], before_div[j], before_div[j + 1] };
                 Triangle::scan_draw(screen, O,
                     Vec2(clipped_vertices[j].x * 0.5 * screen.width, clipped_vertices[j].y * 0.5 * screen.height),
                     Vec2(clipped_vertices[j + 1].x * 0.5 * screen.width, clipped_vertices[j + 1].y * 0.5 * screen.height), 
-                    color, v_z);
+                    color, mesh.material, lights, v, dir);
             }
         }
     }
@@ -89,23 +89,23 @@ std::vector<Vec4> Camera::near_clip(const Vec4& a, const Vec4& b) {
 }
 
 void Camera::division(Vec4& i) {
-    if (abs(i.w) > 0.00001) {
+    if (std::fabs(i.w) > 0.00001) {
         i.x = i.x / i.w + 1;
         i.y = i.y / i.w + 1;
-        i.z = i.z / i.w;
+        // i.z = i.z / i.w;
     }
 }
 
 void Camera::controller() {
     constexpr float speed = 0.1f;
     if (GetAsyncKeyState('W') & 0x8000)
-        Transform::translate(pos, Vec4(-sin(a_x), 0, cos(a_x), 0) * speed);
+        Transform::translate(pos, Vec4(sin(a_x), 0, cos(a_x), 0) * speed);
     if (GetAsyncKeyState('S') & 0x8000)
-        Transform::translate(pos, Vec4(sin(a_x), 0, -cos(a_x), 0) * speed);
+        Transform::translate(pos, Vec4(-sin(a_x), 0, -cos(a_x), 0) * speed);
     if (GetAsyncKeyState('A') & 0x8000)
-        Transform::translate(pos, Vec4(-cos(a_x), 0, -sin(a_x), 0) * speed);
+        Transform::translate(pos, Vec4(-cos(a_x), 0, sin(a_x), 0) * speed);
     if (GetAsyncKeyState('D') & 0x8000)
-        Transform::translate(pos, Vec4(cos(a_x), 0, sin(a_x), 0) * speed);
+        Transform::translate(pos, Vec4(cos(a_x), 0, -sin(a_x), 0) * speed);
     if (GetAsyncKeyState('Q') & 0x8000)
         Transform::translate(pos, Vec4(0, 1, 0, 0) * speed);
     if (GetAsyncKeyState('E') & 0x8000)

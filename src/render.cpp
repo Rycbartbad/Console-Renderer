@@ -18,7 +18,7 @@ void Renderer::toggle_fps() {
     screen.show_fps = !screen.show_fps;
 }
 
-void Renderer::set_aa(AA aa) {
+void Renderer::set_aa(const AA aa) {
     switch (aa) {
         case SSAA:
             screen.SSAA = true;
@@ -38,22 +38,40 @@ void Renderer::launch(const int threads) {
     }
 }
 
-ID Renderer::add_meshes(const std::vector<Mesh>& _meshes) {
+ID Renderer::add(const std::vector<Mesh>& _meshes) {
     const int begin = mesh_num;
     for (const auto& mesh : _meshes) {
         meshes.emplace_back(mesh);
         ++mesh_num;
     }
-    return ID(begin, mesh_num);
+    return ID{ begin, mesh_num };
+}
+
+ID Renderer::add(const std::vector<Light>& _lights) {
+    const int begin = light_num;
+    for (const auto& light : _lights) {
+        lights.emplace_back(light);
+        ++light_num;
+    }
+    return ID{ begin, light_num };
 }
 
 std::vector<Mesh*> Renderer::operate_meshes(const ID id) {
     std::vector<Mesh*> mesh;
-    for (int i = 0; i < id.end - id.begin; i++) {
+    for (int i = id.begin; i < id.end ; i++) {
         mesh.emplace_back(&meshes[i]);
     }
     return mesh;
 }
+
+std::vector<Light*> Renderer::operate_lights(const ID id) {
+    std::vector<Light*> light;
+    for (int i = id.begin; i < id.end ; i++) {
+        light.emplace_back(&lights[i]);
+    }
+    return light;
+}
+
 
 void Renderer::init_controller() {
     camera.controller();
@@ -73,12 +91,18 @@ void Renderer::init_controller() {
 
         }
         new_screen.clear();
+        std::vector<Light> _lights = lights;
+        for (auto& light : _lights) {
+            Transform::translate(light.pos, camera.pos * (-1));
+            Transform::rotate(light.pos, Vec4(0, 1, 0, 0), -camera.a_x);
+            Transform::rotate(light.pos, Vec4(1, 0, 0, 0), -camera.a_y);
+        }
         for (auto mesh : meshes) {
             Transform::translate(mesh, camera.pos * (-1));
             Transform::rotate(mesh, Vec4(0, 1, 0, 0), -camera.a_x);
             Transform::rotate(mesh, Vec4(1, 0, 0, 0), -camera.a_y);
 
-            camera.load(new_screen, mesh);
+            camera.load(new_screen, mesh, _lights);
         }
         Screen::calculate_fps();
         new_screen.draw();

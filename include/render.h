@@ -7,7 +7,7 @@
 #include "screen.h"
 #include <vector>
 
-enum AA { SSAA };
+enum AA { SSAA, NOAA };
 
 struct ID {
     int begin;
@@ -23,14 +23,18 @@ public:
     void set_camera_pos(const Vec4&);
     void init_controller();
     void launch(int);
-    ID add_meshes(const std::vector<Mesh>&);
+    ID add(const std::vector<Mesh>&);
+    ID add(const std::vector<Light>&);
     std::vector<Mesh*> operate_meshes(ID);
+    std::vector<Light*> operate_lights(ID);
 
 private:
     [[noreturn]] void ShadeCycle() const;
     Camera camera;
     std::vector<Mesh> meshes;
+    std::vector<Light> lights;
     Screen screen;
     int mesh_num;
+    int light_num;
 };
 #endif //PROJECT_RENDER_H

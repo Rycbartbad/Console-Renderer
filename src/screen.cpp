@@ -43,11 +43,13 @@ void Screen::update() {
     }
 }
 
-void Screen::set_pixel(int x, int y, const Vec3& color, float z) {
+void Screen::set_pixel(const int& x, const int& y, const Vec3& color, const float& z) {
     if (x < 0 || x >= width || y < 0 || y >= height) return;
     const size_t index = x + y * width;
+
     if (z_buffer[index] != 0 && z >= z_buffer[index]) return;
     z_buffer[index] = z;
+
     buffer[index] = color;
 }
 
@@ -73,12 +75,12 @@ void Screen::draw() {
         for (int y = 0; y < height; y += 2) {
             for (x *= 2; x < width; x += 2) {
                 output_buf += "\033[48;2;" +
-                    std::to_string((buffer[x + y * width].x + buffer[x + 1 + y * width].x + 
-                                  buffer[x + y * width + width].x + buffer[x + 1 + y * width + width].x) / 4) + ';' +
-                    std::to_string((buffer[x + y * width].y + buffer[x + 1 + y * width].y + 
-                                  buffer[x + y * width + width].y + buffer[x + 1 + y * width + width].y) / 4) + ';' +
-                    std::to_string((buffer[x + y * width].z + buffer[x + 1 + y * width].z + 
-                                  buffer[x + y * width + width].z + buffer[x + 1 + y * width + width].z) / 4) + "m  ";
+                    std::to_string(min((buffer[x + y * width].x + buffer[x + 1 + y * width].x +
+                                  buffer[x + y * width + width].x + buffer[x + 1 + y * width + width].x) / 4, 255)) + ';' +
+                    std::to_string(min((buffer[x + y * width].y + buffer[x + 1 + y * width].y +
+                                  buffer[x + y * width + width].y + buffer[x + 1 + y * width + width].y) / 4, 255)) + ';' +
+                    std::to_string(min((buffer[x + y * width].z + buffer[x + 1 + y * width].z +
+                                  buffer[x + y * width + width].z + buffer[x + 1 + y * width + width].z) / 4, 255)) + "m  ";
             }
             x = 0;
             if (bias)
@@ -87,15 +89,9 @@ void Screen::draw() {
     } else {
         for (int y = 0; y < height; y++) {
             for (; x < width; x++) {
-                if (z_buffer[x + y * width] != 0) {
-                    output_buf += "\033[48;2;" + std::to_string(buffer[x + y * width].x) + ';' + 
-                                 std::to_string(buffer[x + y * width].y) + ';' + 
-                                 std::to_string(buffer[x + y * width].z) + "m  ";
-                } else if (x > 0 && z_buffer[x + y * width - 1] != 0) {
-                    output_buf += "\033[m  ";
-                } else {
-                    output_buf += "  ";
-                }
+                output_buf += "\033[48;2;" + std::to_string(min(buffer[x + y * width].x, 255)) + ';' +
+                                 std::to_string(min(buffer[x + y * width].y, 255)) + ';' +
+                                 std::to_string(min(buffer[x + y * width].z, 255)) + "m  ";
             }
             x = 0;
             if (bias)
@@ -106,9 +102,10 @@ void Screen::draw() {
 
 void Screen::calculate_fps() {
     ++counter_t;
-    if (clock() - start_t == 0) return;
+    end_t = clock();
+    if (end_t - start_t == 0) return;
     if (counter_t >= 100) {
-        end_t = clock();
+        
         fps = CLOCKS_PER_SEC * 100 / (end_t - start_t);
         start_t = clock();
         counter_t = 0;

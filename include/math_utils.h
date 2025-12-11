@@ -27,8 +27,10 @@ public:
 
     Vec3 operator+(const Vec3& b) const { return { x + b.x, y + b.y, z + b.z }; }
     Vec3 operator-(const Vec3& b) const { return { x - b.x, y - b.y, z - b.z }; }
-    Vec3 operator*(int b) const { return { x * b, y * b, z * b }; }
-    Vec3 operator/(int b) const { return { x / b, y / b, z / b }; }
+    Vec3 operator*(const int b) const { return { x * b, y * b, z * b }; }
+    Vec3 operator*(const float b) const { return { static_cast<int>(x * b), static_cast<int>(y * b), static_cast<int>(z * b) }; }
+    Vec3 operator/(const int b) const { return { x / b, y / b, z / b }; }
+    [[nodiscard]] Vec3 hadamard(const Vec3& b) const { return {x * b.x, y * b.y, z * b.z}; }
     int operator*(const Vec3& b) const { return x * b.x + y * b.y + z * b.z; }
 
     bool operator==(const Vec3& b) const { return x == b.x && y == b.y && z == b.z; }
@@ -49,16 +51,19 @@ public:
     Vec3 to_vec3() const { return { static_cast<short>(round(x)), static_cast<short>(round(y)), static_cast<short>(round(z)) }; }
 
     void normalize() {
-        const float sum = sqrt(x * x + y * y + z * z);
-        if (sum > 0.00001f) {
+        if (const float sum = sqrt(x * x + y * y + z * z); sum > 0.00001f) {
             x /= sum; y /= sum; z /= sum;
         }
         w = 0;
     }
 
-    Vec4 cross3(const Vec4& b) const {
+    [[nodiscard]] Vec4 cross3(const Vec4& b) const {
         return { y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x, 1 };
     }
+
+    Vec4 operator/(float b) const {
+        return {x / b, y / b, z / b, w / b};
+    };
 
     float x, y, z, w;
 };
