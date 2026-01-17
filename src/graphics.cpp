@@ -60,7 +60,7 @@ void Line::fast_draw(Screen& screen, const Vec2& a, const Vec2& b, const Vec3& c
                 half_vec.normalize();
             _color = _color + (color.hadamard(l_color) * (material.k_ambient +
                 max(L * normal, 0.0f) * material.k_diffuse * _intensity)  / 255 +
-                l_color * _intensity * static_cast<float>(std::pow(max(half_vec * normal, 0.0f), 5) * material.k_specular));
+                l_color * _intensity * static_cast<float>(std::pow(max(half_vec * normal, 0.0f), 5) * material.k_specular)) / lights.size();
         }
         screen.set_pixel(point.x, point.y, _color, 1 / z_1);
         point.x += sign_x;
@@ -97,11 +97,11 @@ void Triangle::scan_draw(Screen& screen, const Vec2& a, const Vec2& b, const Vec
     
     float x_1bias, x_2bias;
     if (x > vecs[1].x) {
-        x_1bias = .75f;
-        x_2bias = .5f;
+        x_1bias = .05f;
+        x_2bias = -.05f;
     } else {
-        x_1bias = .5f;
-        x_2bias = .75f;
+        x_1bias = -.05f;
+        x_2bias = .05f;
     }
     
     float dy = vecs[0].y - vecs[1].y;

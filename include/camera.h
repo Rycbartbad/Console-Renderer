@@ -7,8 +7,6 @@
 #include "graphics.h"
 #include <windows.h>
 
-class Screen;
-
 class Camera {
 public:
     Camera();

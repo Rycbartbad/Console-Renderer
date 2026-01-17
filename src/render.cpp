@@ -7,6 +7,7 @@
 Renderer::Renderer() {
     Screen::init();
     mesh_num = 0;
+    light_num = 0;
 }
 
 void Renderer::update() {
@@ -73,39 +74,39 @@ std::vector<Light*> Renderer::operate_lights(const ID id) {
 }
 
 
-void Renderer::init_controller() {
+void Renderer::controller() {
     camera.controller();
 }
 
-
-[[noreturn]] void Renderer::ShadeCycle() const {
-    Screen new_screen;
-
+[[noreturn]] void Renderer::ShadeCycle() {
+    Screen _screen;
     while (true) {
-        new_screen.show_fps = screen.show_fps;
-            new_screen.SSAA = screen.SSAA;
-        if (new_screen.width != screen.width || new_screen.height != screen.height || new_screen.bias != screen.bias) {
-            new_screen.width = screen.width;
-            new_screen.height = screen.height;
-            new_screen.bias = screen.bias;\
-
-        }
-        new_screen.clear();
+        _screen = screen;
+        _screen.clear();
         std::vector<Light> _lights = lights;
         for (auto& light : _lights) {
             Transform::translate(light.pos, camera.pos * (-1));
             Transform::rotate(light.pos, Vec4(0, 1, 0, 0), -camera.a_x);
             Transform::rotate(light.pos, Vec4(1, 0, 0, 0), -camera.a_y);
         }
-        for (auto mesh : meshes) {
+        std::vector<Mesh> _meshes = meshes;
+        for (auto& mesh : _meshes) {
             Transform::translate(mesh, camera.pos * (-1));
             Transform::rotate(mesh, Vec4(0, 1, 0, 0), -camera.a_x);
             Transform::rotate(mesh, Vec4(1, 0, 0, 0), -camera.a_y);
 
-            camera.load(new_screen, mesh, _lights);
+            camera.load(_screen, mesh, _lights);
         }
-        Screen::calculate_fps();
-        new_screen.draw();
-        new_screen.show();
+        _screen.draw();
+        _screen.calculate_fps();
+        _screen.show();
     }
+}
+
+Screen* Renderer::get_screen() {
+    return &screen;
+}
+
+Camera* Renderer::get_camera() {
+    return &camera;
 }
