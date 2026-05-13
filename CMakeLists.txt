@@ -10,7 +10,7 @@ find_package(Threads REQUIRED)
 
 # Windows特定设置
 if(WIN32)
-    add_definitions(-DWIN32_LEAN_AND_MEAN)
+    add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX)
     set(WIN32_LIBS kernel32 user32 gdi32 winspool shell32 ole32 oleaut32 uuid comdlg32 advapi32)
 endif()
 

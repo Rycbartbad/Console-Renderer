@@ -3,8 +3,19 @@
 #define PROJECT_MATH_UTILS_H
 
 #include <cmath>
+#include <algorithm>
 
 constexpr float pi = 3.14159f;
+
+template<typename T>
+[[nodiscard]] constexpr T clamp(const T& v, const T& lo, const T& hi) {
+    return std::max(lo, std::min(v, hi));
+}
+
+template<typename T>
+[[nodiscard]] constexpr T lerp(const T& a, const T& b, float t) {
+    return a + (b - a) * t;
+}
 
 class Vec2 {
 public:

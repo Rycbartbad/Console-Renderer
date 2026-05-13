@@ -13,7 +13,7 @@ RubikCube::RubikCube(const float length) {
 }
 
 Mesh RubikCube::gen_block(const Vec4& pos, const float len) {
-    constexpr Material material = {0.65, 1.2, 0.3};
+    constexpr Material material = Material{ 0.4f, 0.8f, 0.3f };
     const Vec3 color[6] = {
         Vec3(255,0,0),    // 红
         Vec3(0,255,0),    // 绿
