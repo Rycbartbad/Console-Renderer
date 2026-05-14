@@ -8,7 +8,7 @@ double Screen::fps_min = 1e9;
 double Screen::fps_max = 0;
 double Screen::fps_sum = 0;
 int Screen::fps_count = 0;
-std::string Screen::fps_display;
+std::string Screen::fps_display = "fps: 0/0";
 
 Screen::Screen() {
     width = height = 0;
@@ -195,8 +195,7 @@ void Screen::calculate_fps(double frame_time_ms) {
         // Build display string every ~1s
         if (accumulated >= 1000.0) {
             char buf[64];
-            std::snprintf(buf, sizeof(buf), "FPS %d  min %.0f  max %.0f",
-                         fps, fps_min, fps_max);
+            std::snprintf(buf, sizeof(buf), "fps: %.0f/%.0f", fps_min, fps_max);
             fps_display = buf;
             fps_min = 1e9;
             fps_max = 0;

@@ -1086,3 +1086,361 @@
 [PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  5.54  cmp(AA= 0.00 drw= 0.91 shw=  4.15)=  5.06  total= 11.61ms  FPS=86
 ===== Profile Log =====
 [PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  5.09  cmp(AA= 0.00 drw= 0.76 shw=  0.28)=  1.04  total=  7.17ms  FPS=139
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.02  worker=  0.52  cmp(AA= 0.00 drw= 0.01 shw=  0.24)=  0.26  total=  0.82ms  FPS=1214
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.33  cmp(AA= 0.00 drw= 0.01 shw=  0.22)=  0.23  total=  0.59ms  FPS=1698
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.50ms  FPS=1994
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.23  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.47ms  FPS=2117
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.22  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.47ms  FPS=2142
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.22  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.47ms  FPS=2141
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.44ms  FPS=2257
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.40ms  FPS=2500
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.40ms  FPS=2489
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.17)=  0.18  total=  0.39ms  FPS=2554
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.17  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.18  total=  0.39ms  FPS=2561
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.17  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.39ms  FPS=2545
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.17)=  0.18  total=  0.39ms  FPS=2577
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.40ms  FPS=2508
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.41ms  FPS=2430
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.19  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.41ms  FPS=2423
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.17  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.18  total=  0.39ms  FPS=2545
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.19  total=  0.41ms  FPS=2454
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.19  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.43ms  FPS=2344
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.45ms  FPS=2207
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.20  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.43ms  FPS=2311
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.40ms  FPS=2493
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.17  cmp(AA= 0.00 drw= 0.01 shw=  0.16)=  0.17  total=  0.37ms  FPS=2708
+===== Profile Log =====
+[PROFILE   64x33  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.41ms  FPS=2439
+===== Profile Log =====
+[PROFILE   64x33  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.17  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.39ms  FPS=2542
+===== Profile Log =====
+[PROFILE   68x36  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.40ms  FPS=2498
+===== Profile Log =====
+[PROFILE   68x36  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.19  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.42ms  FPS=2389
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.44ms  FPS=2272
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.19  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.42ms  FPS=2403
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.46ms  FPS=2195
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.20  cmp(AA= 0.00 drw= 0.01 shw=  0.17)=  0.19  total=  0.42ms  FPS=2382
+===== Profile Log =====
+[PROFILE   87x45  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.45ms  FPS=2247
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.45ms  FPS=2242
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.45ms  FPS=2216
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.21  total=  0.46ms  FPS=2173
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.20  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.43ms  FPS=2322
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.20  total=  0.44ms  FPS=2249
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.22  cmp(AA= 0.00 drw= 0.02 shw=  0.20)=  0.22  total=  0.48ms  FPS=2100
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.20  total=  0.45ms  FPS=2217
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.20  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.43ms  FPS=2314
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.20  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.44ms  FPS=2260
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.20  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.20  total=  0.44ms  FPS=2267
+===== Profile Log =====
+[PROFILE  120x61  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.24  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.20  total=  0.48ms  FPS=2068
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.89  cmp(AA= 0.00 drw= 0.15 shw=  0.28)=  0.43  total=  1.58ms  FPS=631
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.55  cmp(AA= 0.00 drw= 0.79 shw=  0.26)=  1.06  total=  6.55ms  FPS=153
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.48  cmp(AA= 0.00 drw= 0.77 shw=  0.26)=  1.03  total=  6.54ms  FPS=153
+===== Profile Log =====
+[PROFILE  240x123 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  2.86  cmp(AA= 0.00 drw= 0.49 shw=  0.31)=  0.80  total=  4.35ms  FPS=230
+===== Profile Log =====
+[PROFILE  192x90  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.38  cmp(AA= 0.00 drw= 0.05 shw=  0.21)=  0.26  total=  0.73ms  FPS=1365
+===== Profile Log =====
+[PROFILE  192x90  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.38  cmp(AA= 0.00 drw= 0.05 shw=  0.21)=  0.26  total=  0.72ms  FPS=1393
+===== Profile Log =====
+[PROFILE  192x90  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.36  cmp(AA= 0.00 drw= 0.05 shw=  0.19)=  0.24  total=  0.68ms  FPS=1481
+===== Profile Log =====
+[PROFILE  192x90  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.34  cmp(AA= 0.00 drw= 0.04 shw=  0.19)=  0.23  total=  0.65ms  FPS=1532
+===== Profile Log =====
+[PROFILE  192x90  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.35  cmp(AA= 0.00 drw= 0.04 shw=  0.20)=  0.24  total=  0.67ms  FPS=1485
+===== Profile Log =====
+[PROFILE  192x90  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.37  cmp(AA= 0.00 drw= 0.05 shw=  0.21)=  0.25  total=  0.71ms  FPS=1411
+===== Profile Log =====
+[PROFILE  120x61  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.35  cmp(AA= 0.00 drw= 0.04 shw=  0.22)=  0.26  total=  0.69ms  FPS=1459
+===== Profile Log =====
+[PROFILE   87x45  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.25  cmp(AA= 0.00 drw= 0.01 shw=  0.21)=  0.22  total=  0.52ms  FPS=1928
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.22  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.47ms  FPS=2117
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.42ms  FPS=2365
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.18)=  0.19  total=  0.41ms  FPS=2423
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.46ms  FPS=2187
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.20  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.45ms  FPS=2234
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.20  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.44ms  FPS=2275
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.19  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.42ms  FPS=2355
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.19  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.20  total=  0.42ms  FPS=2354
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.20  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.44ms  FPS=2253
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.45ms  FPS=2213
+===== Profile Log =====
+[PROFILE   80x41  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.20  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.45ms  FPS=2217
+===== Profile Log =====
+[PROFILE   64x33  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.19  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.44ms  FPS=2268
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.19  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.20  total=  0.43ms  FPS=2329
+===== Profile Log =====
+[PROFILE   60x30  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.19  cmp(AA= 0.00 drw= 0.01 shw=  0.21)=  0.21  total=  0.44ms  FPS=2289
+===== Profile Log =====
+[PROFILE   53x28  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.19  cmp(AA= 0.00 drw= 0.00 shw=  0.21)=  0.21  total=  0.43ms  FPS=2317
+===== Profile Log =====
+[PROFILE   53x28  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.16  cmp(AA= 0.00 drw= 0.00 shw=  0.19)=  0.19  total=  0.38ms  FPS=2621
+===== Profile Log =====
+[PROFILE   53x28  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.15  cmp(AA= 0.00 drw= 0.01 shw=  0.19)=  0.19  total=  0.38ms  FPS=2658
+===== Profile Log =====
+[PROFILE   53x28  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.16  cmp(AA= 0.00 drw= 0.01 shw=  0.21)=  0.21  total=  0.41ms  FPS=2440
+===== Profile Log =====
+[PROFILE   53x28  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.22)=  0.22  total=  0.44ms  FPS=2260
+===== Profile Log =====
+[PROFILE   53x28  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.42ms  FPS=2389
+===== Profile Log =====
+[PROFILE   53x28  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.17  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.21  total=  0.41ms  FPS=2455
+===== Profile Log =====
+[PROFILE   53x28  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.17  cmp(AA= 0.00 drw= 0.01 shw=  0.21)=  0.21  total=  0.42ms  FPS=2384
+===== Profile Log =====
+[PROFILE   68x36  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.18  cmp(AA= 0.00 drw= 0.01 shw=  0.22)=  0.22  total=  0.44ms  FPS=2270
+===== Profile Log =====
+[PROFILE   87x45  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.23  cmp(AA= 0.00 drw= 0.01 shw=  0.21)=  0.22  total=  0.50ms  FPS=1995
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.22  cmp(AA= 0.00 drw= 0.01 shw=  0.21)=  0.23  total=  0.49ms  FPS=2032
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.21)=  0.22  total=  0.47ms  FPS=2107
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.02 shw=  0.21)=  0.22  total=  0.48ms  FPS=2070
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.21  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.22  total=  0.47ms  FPS=2130
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.20  cmp(AA= 0.00 drw= 0.01 shw=  0.20)=  0.22  total=  0.46ms  FPS=2155
+===== Profile Log =====
+[PROFILE   96x52  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.19  cmp(AA= 0.00 drw= 0.01 shw=  0.21)=  0.22  total=  0.46ms  FPS=2165
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.25  cmp(AA= 0.00 drw= 0.02 shw=  0.21)=  0.23  total=  0.53ms  FPS=1887
+===== Profile Log =====
+[PROFILE  192x90  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.32  cmp(AA= 0.00 drw= 0.04 shw=  0.22)=  0.26  total=  0.65ms  FPS=1532
+===== Profile Log =====
+[PROFILE  192x90  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.32  cmp(AA= 0.00 drw= 0.04 shw=  0.21)=  0.25  total=  0.65ms  FPS=1529
+===== Profile Log =====
+[PROFILE  240x123 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.39  cmp(AA= 0.00 drw= 0.05 shw=  0.22)=  0.27  total=  0.76ms  FPS=1318
+===== Profile Log =====
+[PROFILE  240x123 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.53  cmp(AA= 0.00 drw= 0.07 shw=  0.21)=  0.28  total=  0.91ms  FPS=1094
+===== Profile Log =====
+[PROFILE  320x198 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.80  cmp(AA= 0.00 drw= 0.12 shw=  0.24)=  0.36  total=  1.34ms  FPS=748
+===== Profile Log =====
+[PROFILE  320x198 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.97  cmp(AA= 0.00 drw= 0.16 shw=  0.20)=  0.36  total=  1.54ms  FPS=648
+===== Profile Log =====
+[PROFILE  320x198 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.93  cmp(AA= 0.00 drw= 0.15 shw=  0.20)=  0.35  total=  1.49ms  FPS=670
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  1.80  cmp(AA= 0.00 drw= 0.30 shw=  0.27)=  0.56  total=  2.83ms  FPS=353
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.23  cmp(AA= 0.00 drw= 0.76 shw=  0.26)=  1.03  total=  6.32ms  FPS=158
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.21  cmp(AA= 0.00 drw= 0.74 shw=  0.26)=  1.00  total=  6.26ms  FPS=160
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.09  cmp(AA= 0.00 drw= 0.75 shw=  0.25)=  1.00  total=  6.15ms  FPS=162
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.03  cmp(AA= 0.00 drw= 0.75 shw=  0.26)=  1.01  total=  6.09ms  FPS=164
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.31  cmp(AA= 0.00 drw= 0.76 shw=  0.27)=  1.03  total=  6.36ms  FPS=157
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.09  cmp(AA= 0.00 drw= 0.77 shw=  0.26)=  1.02  total=  6.16ms  FPS=162
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.23  cmp(AA= 0.00 drw= 0.77 shw=  0.25)=  1.02  total=  6.31ms  FPS=159
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.12  cmp(AA= 0.00 drw= 0.77 shw=  0.26)=  1.03  total=  6.18ms  FPS=162
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.17  cmp(AA= 0.00 drw= 0.75 shw=  0.26)=  1.01  total=  6.19ms  FPS=161
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.18  cmp(AA= 0.00 drw= 0.77 shw=  0.25)=  1.02  total=  6.19ms  FPS=161
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.08  cmp(AA= 0.00 drw= 0.75 shw=  0.26)=  1.01  total=  6.13ms  FPS=163
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.26  cmp(AA= 0.00 drw= 0.80 shw=  0.27)=  1.06  total=  6.38ms  FPS=157
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.38  cmp(AA= 0.00 drw= 0.75 shw=  0.26)=  1.01  total=  6.42ms  FPS=156
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.01  cmp(AA= 0.00 drw= 0.75 shw=  0.26)=  1.01  total=  6.05ms  FPS=165
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.11  cmp(AA= 0.00 drw= 0.76 shw=  0.26)=  1.02  total=  6.16ms  FPS=162
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.07  cmp(AA= 0.00 drw= 0.77 shw=  0.26)=  1.03  total=  6.19ms  FPS=162
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.01  cmp(AA= 0.00 drw= 0.76 shw=  0.26)=  1.02  total=  6.06ms  FPS=165
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.11  cmp(AA= 0.00 drw= 0.76 shw=  0.28)=  1.04  total=  6.23ms  FPS=161
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  3.98  cmp(AA= 0.00 drw= 0.78 shw=  0.27)=  1.06  total=  6.07ms  FPS=165
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.08  cmp(AA= 0.00 drw= 0.75 shw=  0.26)=  1.01  total=  6.12ms  FPS=163
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  3.92  cmp(AA= 0.00 drw= 0.76 shw=  0.26)=  1.03  total=  6.02ms  FPS=166
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.11  cmp(AA= 0.00 drw= 0.76 shw=  0.25)=  1.01  total=  6.14ms  FPS=163
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.08  cmp(AA= 0.00 drw= 0.76 shw=  0.25)=  1.01  total=  6.16ms  FPS=162
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.44  cmp(AA= 0.00 drw= 0.80 shw=  0.26)=  1.06  total=  6.55ms  FPS=153
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.26  cmp(AA= 0.00 drw= 0.80 shw=  0.27)=  1.07  total=  6.37ms  FPS=157
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.39  cmp(AA= 0.00 drw= 0.77 shw=  0.25)=  1.03  total=  6.47ms  FPS=155
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.31  cmp(AA= 0.00 drw= 0.79 shw=  0.26)=  1.05  total=  6.40ms  FPS=156
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.39  cmp(AA= 0.00 drw= 0.77 shw=  0.27)=  1.05  total=  6.48ms  FPS=154
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.19  cmp(AA= 0.00 drw= 0.75 shw=  0.27)=  1.02  total=  6.25ms  FPS=160
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.27  cmp(AA= 0.00 drw= 0.78 shw=  0.26)=  1.04  total=  6.35ms  FPS=157
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.16  cmp(AA= 0.00 drw= 0.77 shw=  0.26)=  1.03  total=  6.24ms  FPS=160
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.49  cmp(AA= 0.00 drw= 0.76 shw=  0.27)=  1.03  total=  6.60ms  FPS=152
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.00  cmp(AA= 0.00 drw= 0.76 shw=  0.26)=  1.02  total=  6.04ms  FPS=166
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.02  cmp(AA= 0.00 drw= 0.75 shw=  0.26)=  1.00  total=  6.07ms  FPS=165
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.15  cmp(AA= 0.00 drw= 0.76 shw=  0.26)=  1.03  total=  6.20ms  FPS=161
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.14  cmp(AA= 0.00 drw= 0.79 shw=  0.27)=  1.05  total=  6.30ms  FPS=159
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.10  cmp(AA= 0.00 drw= 0.79 shw=  0.25)=  1.03  total=  6.20ms  FPS=161
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.04  cmp(AA= 0.00 drw= 0.75 shw=  0.26)=  1.01  total=  6.10ms  FPS=164
+===== Profile Log =====
+[PROFILE  320x198 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  3.37  cmp(AA= 0.00 drw= 0.64 shw=  0.27)=  0.92  total=  5.18ms  FPS=193
+===== Profile Log =====
+[PROFILE  240x123 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.71  cmp(AA= 0.00 drw= 0.11 shw=  0.21)=  0.32  total=  1.18ms  FPS=845
+===== Profile Log =====
+[PROFILE  192x90  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.33  cmp(AA= 0.00 drw= 0.04 shw=  0.20)=  0.24  total=  0.66ms  FPS=1527
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.29  cmp(AA= 0.00 drw= 0.03 shw=  0.19)=  0.22  total=  0.59ms  FPS=1704
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.27  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.21  total=  0.54ms  FPS=1863
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.21  total=  0.53ms  FPS=1894
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.17)=  0.20  total=  0.51ms  FPS=1953
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.25  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.51ms  FPS=1962
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.27  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.21  total=  0.54ms  FPS=1850
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.17)=  0.19  total=  0.51ms  FPS=1960
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.51ms  FPS=1944
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.27  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.21  total=  0.53ms  FPS=1882
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.27  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.21  total=  0.53ms  FPS=1876
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.21  total=  0.52ms  FPS=1909
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.29  cmp(AA= 0.00 drw= 0.02 shw=  0.20)=  0.22  total=  0.57ms  FPS=1750
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.28  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.22  total=  0.55ms  FPS=1814
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.52ms  FPS=1933
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.51ms  FPS=1950
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.25  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.51ms  FPS=1978
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.21  total=  0.53ms  FPS=1883
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.52ms  FPS=1940
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.25  cmp(AA= 0.00 drw= 0.02 shw=  0.17)=  0.20  total=  0.50ms  FPS=1990
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.21  total=  0.53ms  FPS=1886
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.28  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.21  total=  0.55ms  FPS=1823
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.28  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.21  total=  0.55ms  FPS=1806
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.28  cmp(AA= 0.00 drw= 0.03 shw=  0.19)=  0.21  total=  0.55ms  FPS=1816
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.27  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.53ms  FPS=1882
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.27  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.52ms  FPS=1906
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.28  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.21  total=  0.55ms  FPS=1815
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.27  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.53ms  FPS=1899
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.25  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.52ms  FPS=1940
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.21  total=  0.54ms  FPS=1859
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.51ms  FPS=1948
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.51ms  FPS=1955
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.51ms  FPS=1945
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.27  cmp(AA= 0.00 drw= 0.02 shw=  0.19)=  0.21  total=  0.53ms  FPS=1875
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.26  cmp(AA= 0.00 drw= 0.02 shw=  0.18)=  0.20  total=  0.52ms  FPS=1937
+===== Profile Log =====
+[PROFILE  137x70  last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.28  cmp(AA= 0.00 drw= 0.03 shw=  0.20)=  0.22  total=  0.56ms  FPS=1786
+===== Profile Log =====
+[PROFILE  240x123 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  0.37  cmp(AA= 0.00 drw= 0.05 shw=  0.22)=  0.27  total=  0.73ms  FPS=1374
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  1.03  cmp(AA= 0.00 drw= 0.18 shw=  0.32)=  0.49  total=  1.83ms  FPS=546
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  3.84  cmp(AA= 0.00 drw= 0.78 shw=  0.26)=  1.04  total=  5.92ms  FPS=169
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  3.86  cmp(AA= 0.00 drw= 0.76 shw=  0.27)=  1.03  total=  5.97ms  FPS=168
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.16  cmp(AA= 0.00 drw= 0.78 shw=  0.25)=  1.03  total=  6.26ms  FPS=160
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.04  cmp(AA= 0.00 drw= 0.74 shw=  0.26)=  1.00  total=  6.09ms  FPS=164
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.25  cmp(AA= 0.00 drw= 0.79 shw=  0.27)=  1.06  total=  6.35ms  FPS=157
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  4.01  cmp(AA= 0.00 drw= 0.75 shw=  0.26)=  1.01  total=  6.13ms  FPS=163
+===== Profile Log =====
+[PROFILE  961x330 last   60 frames]  alloc= 0.00  prep= 0.01  worker=  3.85  cmp(AA= 0.00 drw= 0.78 shw=  0.27)=  1.05  total=  5.92ms  FPS=169
