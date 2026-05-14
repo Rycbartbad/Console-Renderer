@@ -41,6 +41,9 @@ void Renderer::render_frame() {
         screen.z_buffer.assign(screen.width * screen.height, 0);
     }
 
+    // Hi-Z occlusion: clear at frame start
+    hiz_clear();
+
     Stopwatch p1_sw;
     prepare_frame();  // frame_meshes now in camera space
     // View-frustum cull: mark invisible meshes (workers skip them)
@@ -183,6 +186,9 @@ void Renderer::render_frame() {
         camera.set_jitter(0, 0);
     }
 
+    // Initialize Hi-Z for this frame
+    hiz_clear();
+
     Stopwatch ww_sw;
     tile_index.store(0, std::memory_order_relaxed);
     workers_done.store(0, std::memory_order_release);
@@ -200,6 +206,29 @@ void Renderer::render_frame() {
     while (workers_done.load(std::memory_order_acquire) < num_threads)
         std::this_thread::yield();
     t_worker_wait += ww_sw.elapsed_ms();
+
+    // Build Hi-Z from full-res z-buffer for next frame's occlusion tests
+    {
+        const int hw = std::max(1, screen.width / 8);
+        const int hh = std::max(1, screen.height / 8);
+        hiz_buffer.assign(static_cast<size_t>(hw) * hh, 1.0f);
+        hiz_w = hw; hiz_h = hh;
+        // Nearest-pixel downsample: each Hi-Z cell = min of 8×8 block
+        for (int y = 0; y < hh; y++)
+            for (int x = 0; x < hw; x++) {
+                float d = 1e9f;
+                for (int dy = 0; dy < 8; dy++)
+                    for (int dx = 0; dx < 8; dx++) {
+                        int sx = x * 8 + dx;
+                        int sy = y * 8 + dy;
+                        if (sx < screen.width && sy < screen.height) {
+                            float zd = screen.z_buffer[sx + sy * screen.width];
+                            if (zd > 0.001f && zd < d) d = zd;
+                        }
+                    }
+                if (d < 1e8f) hiz_buffer[x + y * hw] = d;
+            }
+    }
 
     // Composite 2D overlay layers on top of 3D scene
     composite_layers();
@@ -273,6 +302,11 @@ void Renderer::frustum_cull() {
         // Reject outside vertical frustum
         float half_h = z_test * inv_2n;
         if (cy - r > half_h || cy + r < -half_h) { mesh_visible[i] = false; continue; }
+
+        // Hi-Z occlusion test (from previous frame's depth)
+        if (hiz_buffer.size() > 0 && hiz_test(cx, cy, cz, r)) {
+            mesh_visible[i] = false; continue;
+        }
     }
 }
 
@@ -502,6 +536,49 @@ std::vector<Light*> Renderer::operate_lights(const ID id) {
 
 void Renderer::controller() {
     camera.controller();
+}
+
+// ── Hi-Z occlusion buffer ──────────────────────────────────────────────
+void Renderer::hiz_clear() {
+    hiz_w = std::max(1, screen.width / 8);
+    hiz_h = std::max(1, screen.height / 8);
+    hiz_buffer.assign(static_cast<size_t>(hiz_w) * hiz_h, 1.0f);
+}
+
+bool Renderer::hiz_test(float cx, float cy, float cz, float radius) const {
+    // Project sphere center to screen space (same math as Camera::load)
+    if (cz < 1.0f) return false;  // behind near plane, skip test
+    float sx = cx * screen.height / cz + screen.width * 0.5f;
+    float sy = -cy * screen.height / cz + screen.height * 0.5f;
+
+    // Approximate screen-space radius
+    float sr = std::max(1.0f, radius * screen.height / cz);
+
+    // Test the Hi-Z cell that the sphere falls on
+    int hx = static_cast<int>(sx / 8);
+    int hy = static_cast<int>(sy / 8);
+    if (hx < 0 || hx >= hiz_w || hy < 0 || hy >= hiz_h) return false;
+
+    float hiz_depth = hiz_buffer[hx + hy * hiz_w];
+    // If the sphere's nearest depth is beyond the Hi-Z depth, it's occluded
+    float sphere_near_z = cz - radius;
+    return sphere_near_z > hiz_depth + 0.001f;
+}
+
+void Renderer::hiz_update(int x, int y, int w, int h,
+                           const std::vector<float>& z_buf, int zw) {
+    // Update Hi-Z from a tile's z-buffer (called per-tile after rendering)
+    for (int ty = y; ty < y + h; ty++)
+        for (int tx = x; tx < x + w; tx++) {
+            int hx = tx / 8, hy = ty / 8;
+            if (hx >= 0 && hx < hiz_w && hy >= 0 && hy < hiz_h) {
+                float zd = z_buf[static_cast<size_t>(tx - x) + static_cast<size_t>(ty - y) * static_cast<size_t>(w)];
+                if (zd > 0.001f) {
+                    float& hz = hiz_buffer[hx + hy * hiz_w];
+                    if (zd < hz) hz = zd;
+                }
+            }
+        }
 }
 
 Screen* Renderer::get_screen() {
