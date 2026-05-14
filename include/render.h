@@ -63,7 +63,6 @@ private:
     std::vector<std::thread> workers;
     std::mutex mtx;
     std::condition_variable cv;       // worker wake-up
-    std::condition_variable cv_main;  // main thread wake-up (workers signal completion)
     std::atomic<int> current_frame{0};
     std::atomic<int> workers_done{0};
     bool running{false};
