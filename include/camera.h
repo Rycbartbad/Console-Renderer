@@ -5,7 +5,7 @@
 #include "mesh.h"
 #include "light.h"
 #include "graphics.h"
-#include <windows.h>
+#include "platform.h"
 
 class Camera {
 public:
@@ -21,7 +21,7 @@ public:
 
     Vec4 pos;
     float a_x, a_y;
-    POINT p1, p2;
+    int p1x = 0, p1y = 0, p2x = 0, p2y = 0;  // mouse tracking
     Vec4 dir;
     float width = 1, height = 1;  // projection params (aspect ratio)
     float n = 1, f = 100;         // near/far plane

@@ -1,7 +1,6 @@
 #include "screen.h"
-#include <iostream>
+#include "platform.h"
 #include <cstdio>
-#include <windows.h>
 
 clock_t Screen::start_t = 0;
 clock_t Screen::end_t = 0;
@@ -17,34 +16,14 @@ Screen::Screen() {
 }
 
 void Screen::init() {
-    // C++ stream optimizations (sync_with_stdio + tie) for console output speed
-    std::ios::sync_with_stdio(false);
-    std::cin.tie(nullptr);
-    std::cout.tie(nullptr);
-
-    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    DWORD mode;
-    GetConsoleMode(hOut, &mode);
-    mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-    SetConsoleMode(hOut, mode);
-    printf("\033[?25l");
+    platform::console_init();
     start_t = clock();
     counter_t = 0;
 }
 
 void Screen::update() {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(hConsole, &csbi);
-
-    csbi.dwSize.X = csbi.dwMaximumWindowSize.X;
-    csbi.dwSize.Y = csbi.dwMaximumWindowSize.Y;
-    SetConsoleScreenBufferSize(hConsole, csbi.dwSize);
-    width = csbi.dwSize.X / 2;
-    height = csbi.dwSize.Y;
-    bias = csbi.dwSize.X % 2;
-    // SSAA doubling is now handled per-worker (render at 2x, downscale to 1x before tile copy)
-    // Screen stays at display resolution.
+    platform::console_get_size(width, height, bias);
+    // SSAA doubling handled per-worker, Screen stays at display resolution.
 }
 
 void Screen::set_pixel(const int& x, const int& y, const Vec3& color, const float& z) {
@@ -409,11 +388,7 @@ Vec2 Screen::halton_sequence(int index) {
 }
 
 void Screen::show() const {
-    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    DWORD written;
-    const char pre[] = "\x1b[?2026h";
-    const char post[] = "\x1b[?2026l";
-    WriteConsoleA(hOut, pre, sizeof(pre) - 1, &written, nullptr);
-    WriteConsoleA(hOut, output_buf.data(), static_cast<DWORD>(output_buf.size()), &written, nullptr);
-    WriteConsoleA(hOut, post, sizeof(post) - 1, &written, nullptr);
+    platform::console_write("\x1b[?2026h", 8);
+    platform::console_write(output_buf.data(), output_buf.size());
+    platform::console_write("\x1b[?2026l", 8);
 }

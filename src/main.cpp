@@ -1,5 +1,6 @@
 ﻿#include "render.h"
 #include "rubik_cube.h"
+#include "platform.h"
 
 [[noreturn]] int main() {
     auto cube = RubikCube(5);
@@ -17,6 +18,6 @@
     while (true) {
         r.update();
         RubikCube::control(rubik_indices, rubik_mesh);
-        Sleep(10);
+        platform::sleep_ms(10);
     }
 }
