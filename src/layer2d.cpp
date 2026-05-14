@@ -167,20 +167,6 @@ void Layer2D::draw_text(float nx, float ny, const std::string& text, Vec3 fg, Ve
         }
     }
 }
-                    }
-                }
-
-                if (hits == 0) continue;
-                float coverage = hits * inv_ssaa;
-                int r = (int)(fg.x * coverage + bg.x * (1.0f - coverage));
-                int g = (int)(fg.y * coverage + bg.y * (1.0f - coverage));
-                int b_ = (int)(fg.z * coverage + bg.z * (1.0f - coverage));
-                Vec3 color(r, g, b_);
-                set_cell(cx + col, oy + row, ' ', color, color);
-            }
-        }
-    }
-}
 
 void Layer2D::draw_line(float nx0, float ny0, float nx1, float ny1, Vec3 color) {
     int x0 = n2x(nx0, m_width), y0 = n2x(ny0, m_height);
