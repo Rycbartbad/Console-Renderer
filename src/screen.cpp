@@ -175,6 +175,11 @@ void Screen::draw() {
 }
 
 void Screen::calculate_fps(double frame_time_ms) {
+    // Sample every 10 frames to reduce overhead
+    static int sample = 0;
+    if (++sample < 10) return;
+    sample = 0;
+
     // Track instantaneous FPS min/max over a 1-second window
     static double window_ms = 0.0;
     fps_min = std::min(fps_min, 1000.0 / frame_time_ms);
