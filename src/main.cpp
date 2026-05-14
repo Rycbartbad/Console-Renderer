@@ -1,8 +1,5 @@
-﻿#include "render.h"
-#include "mesh.h"
-#include "light.h"
-#include "transform.h"
-#include "platform.h"
+﻿#define RENDER_ENGINE_IMPLEMENTATION
+#include "render_engine.h"
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
@@ -38,13 +35,13 @@
 
     Renderer r;
     r.set_aa(TAA);
-    ID mesh_id = r.add(meshes);
-    ID light_id = r.add(lights);
+    ID mesh_id = r.add_meshes(meshes);
+    ID light_id = r.add_lights(lights);
     r.set_camera_pos(Vec4(0, 20, -40, 1));
     r.launch();
 
-    auto all_meshes = r.operate_meshes(mesh_id);
-    auto all_lights = r.operate_lights(light_id);
+    auto all_meshes = r.get_meshes(mesh_id);
+    auto all_lights = r.get_lights(light_id);
     std::vector<float> speeds(N, 0);
     for (int i = 0; i < N; i++) speeds[i] = 0.01f + (rand()%100)*0.001f;
     float t = 0;

@@ -3,34 +3,30 @@ project(Project)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include_directories(${INC_DIR})
-link_directories(${LINK_DIR})
-
 find_package(Threads REQUIRED)
 
-# Windows特定设置
+# Windows specific settings
 if(WIN32)
     add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX)
     set(WIN32_LIBS kernel32 user32 gdi32 winspool shell32 ole32 oleaut32 uuid comdlg32 advapi32)
 endif()
 
-# 源文件列表
-set(SOURCES
-        src/main.cpp
-        src/transform.cpp
-        src/mesh.cpp
-        src/screen.cpp
-        src/camera.cpp
-        src/graphics.cpp
-        src/render.cpp
-        src/rubik_cube.cpp
-        src/layer2d.cpp
-        src/tui.cpp
-)
+# ── Single-header render engine ───────────────────────────────────
+# Include this header in your project. Define RENDER_ENGINE_IMPLEMENTATION
+# in exactly ONE translation unit before including it.
 
-# 头文件目录
-include_directories(include)
+# Main executable (stress test scene)
+add_executable(Project src/main.cpp)
 
-# 创建可执行文件
-add_executable(Project ${SOURCES})
+# Examples (build separately)
+# add_executable(example_2048 example/2048.cpp)
+# add_executable(example_galaxy example/galaxy.cpp)
+# add_executable(example_stress example/stress_test.cpp)
 
+# Headers
+target_include_directories(Project PRIVATE include)
+# target_include_directories(example_2048 PRIVATE include)
+# target_include_directories(example_galaxy PRIVATE include)
+# target_include_directories(example_stress PRIVATE include)
+
+target_link_libraries(Project PRIVATE Threads::Threads ${WIN32_LIBS})
