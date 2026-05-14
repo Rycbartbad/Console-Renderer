@@ -175,24 +175,31 @@ void Screen::draw() {
 }
 
 void Screen::calculate_fps(double frame_time_ms) {
-    // Sample every 10 frames to reduce overhead
-    static int sample = 0;
-    if (++sample < 10) return;
-    sample = 0;
-
-    // Track instantaneous FPS min/max over a 1-second window
+    // Every 10 frames: compute average FPS of the batch
+    static double batch_ms = 0.0;
+    static int batch_count = 0;
     static double window_ms = 0.0;
-    fps_min = std::min(fps_min, 1000.0 / frame_time_ms);
-    fps_max = std::max(fps_max, 1000.0 / frame_time_ms);
-    window_ms += frame_time_ms;
 
-    if (window_ms >= 1000.0) {
-        char buf[64];
-        std::snprintf(buf, sizeof(buf), "fps: %.0f/%.0f", fps_min, fps_max);
-        fps_display = buf;
-        fps_min = 1e9;
-        fps_max = 0;
-        window_ms = 0.0;
+    batch_ms += frame_time_ms;
+    batch_count++;
+
+    if (batch_count >= 10) {
+        double avg_fps = 1000.0 / (batch_ms / batch_count);
+        if (avg_fps < fps_min) fps_min = avg_fps;
+        if (avg_fps > fps_max) fps_max = avg_fps;
+        window_ms += batch_ms;
+
+        if (window_ms >= 1000.0) {
+            char buf[64];
+            std::snprintf(buf, sizeof(buf), "fps: %.0f/%.0f", fps_min, fps_max);
+            fps_display = buf;
+            fps_min = 1e9;
+            fps_max = 0;
+            window_ms = 0.0;
+        }
+
+        batch_ms = 0.0;
+        batch_count = 0;
     }
 }
 

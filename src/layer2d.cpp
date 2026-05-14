@@ -116,7 +116,7 @@ void Layer2D::set_cell(int x, int y, char ch, Vec3 fg, Vec3 bg) {
     c.bg = bg; c.fg = fg; c.ch = ch; c.transparent = false; c.has_text = (ch != ' ');
 }
 
-// ── Normalized → pixel helpers ───────────────────────────────────────────
+// ── Normalized �?pixel helpers ───────────────────────────────────────────
 static int n2x(float n, int dim) { return (int)(n * dim); }
 
 void Layer2D::fill_rect(float nx, float ny, float nw, float nh, Vec3 bg) {
@@ -194,19 +194,6 @@ void Layer2D::draw_text(float nx, float ny, const std::string& text, Vec3 fg, Ve
         }
     }
 }
-                }
-                if (hits == 0) continue;
-                float cov = hits * inv_n;
-                Vec3 col(
-                    (int)(fg.x * cov + bg.x * (1.0f - cov)),
-                    (int)(fg.y * cov + bg.y * (1.0f - cov)),
-                    (int)(fg.z * cov + bg.z * (1.0f - cov))
-                );
-                set_cell(cx + ox2, oy + oy2, ' ', col, col);
-            }
-        }
-    }
-}
 
 void Layer2D::draw_line(float nx0, float ny0, float nx1, float ny1, Vec3 color) {
     int x0 = n2x(nx0, m_width), y0 = n2x(ny0, m_height);
@@ -232,3 +219,4 @@ void Layer2D::composite_to(std::vector<Vec3>& target, int target_w, int target_h
             if (!c.transparent) target[x + y * target_w] = c.fg;
         }
 }
+
