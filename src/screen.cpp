@@ -16,6 +16,11 @@ Screen::Screen() {
 }
 
 void Screen::init() {
+    // C++ stream optimizations (sync_with_stdio + tie) for console output speed
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+    std::cout.tie(nullptr);
+
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD mode;
     GetConsoleMode(hOut, &mode);
