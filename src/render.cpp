@@ -211,7 +211,7 @@ void Renderer::render_frame() {
     {
         const int hw = std::max(1, screen.width / 8);
         const int hh = std::max(1, screen.height / 8);
-        hiz_buffer.assign(static_cast<size_t>(hw) * hh, 1.0f);
+        hiz_buffer.assign(static_cast<size_t>(hw) * hh, 1e9f);
         hiz_w = hw; hiz_h = hh;
         // Nearest-pixel downsample: each Hi-Z cell = min of 8×8 block
         for (int y = 0; y < hh; y++)
@@ -542,7 +542,7 @@ void Renderer::controller() {
 void Renderer::hiz_clear() {
     hiz_w = std::max(1, screen.width / 8);
     hiz_h = std::max(1, screen.height / 8);
-    hiz_buffer.assign(static_cast<size_t>(hiz_w) * hiz_h, 1.0f);
+    hiz_buffer.assign(static_cast<size_t>(hiz_w) * hiz_h, 1e9f);  // "infinity" = empty
 }
 
 bool Renderer::hiz_test(float cx, float cy, float cz, float radius) const {
