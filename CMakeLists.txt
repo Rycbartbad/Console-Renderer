@@ -3,6 +3,11 @@ project(Project)
 
 set(CMAKE_CXX_STANDARD 20)
 
+# Default to Release build for performance
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 find_package(Threads REQUIRED)
 
 # Windows specific settings

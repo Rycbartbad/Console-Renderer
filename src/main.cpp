@@ -3,7 +3,7 @@
 
 [[noreturn]] int main() {
     Renderer r;
-    r.set_camera_pos({ 0, 3, -12, 1 });
+    r.set_camera_pos({ 0, 0, -20, 1 });
     r.set_aa(AA::SSAA);
     r.toggle_fps();
 
@@ -22,7 +22,6 @@
     r.launch();
     while (true) {
         r.update();
-        r.controller();
         RubikCube::control(cube.block_indices, r.get_meshes(mesh_id));
     }
 }
