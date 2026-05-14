@@ -277,10 +277,11 @@ void Renderer::composite_layers() {
     }
     overlay.clear();
 
-    // FPS overlay (fixed pixel position, independent of console size)
+    // FPS overlay (normalized position: 90% from left, independent of console size)
     int fps = Screen::get_fps();
     std::string fps_text = "FPS: " + std::to_string(fps);
-    overlay.draw_text(800, 2, fps_text, Vec3(0, 255, 0), Vec3(0, 0, 0), 1);
+    int tx = static_cast<int>(screen.width * 0.9f);
+    overlay.draw_text(tx, 2, fps_text, Vec3(0, 255, 0), Vec3(0, 0, 0), 1);
 
     overlay.composite_to(screen.buffer, screen.width, screen.height);
 }
