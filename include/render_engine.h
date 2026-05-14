@@ -1490,8 +1490,8 @@ Line::fast_draw(Screen& s,
         int tw = scissor->x_end - scissor->x_start, tox = scissor->x_start, toy = scissor->y_start;
         Vec2 p = { a.x + i0 * sx, a.y };
         for (int i = 0; i <= it; i++) {
-            float ad = (float)al, bd = (float)be, gd = (float)ga, sum = ad + bd + gd;
-            float id = 1.0f / (ad * i0z + bd * i1z + gd * i2z), dep = sum * id;
+            double ad = al, bd = be, gd = ga, sum = ad + bd + gd;
+            float id = (float)(1.0 / (ad * i0z + bd * i1z + gd * i2z)), dep = (float)(sum * id);
             size_t idx = (size_t)(p.x - tox) + (size_t)(p.y - toy) * (size_t)tw;
             if (s.z_buffer[idx] == 0 || dep + 2e-7f < s.z_buffer[idx]) {
                 s.z_buffer[idx] = dep;
@@ -1520,8 +1520,8 @@ Line::fast_draw(Screen& s,
     } else {
         Vec2 p = { a.x + i0 * sx, a.y };
         for (int i = 0; i <= it; i++) {
-            float ad = (float)al, bd = (float)be, gd = (float)ga, sum = ad + bd + gd;
-            float id = 1.0f / (ad * i0z + bd * i1z + gd * i2z), dep = sum * id;
+            double ad = al, bd = be, gd = ga, sum = ad + bd + gd;
+            float id = (float)(1.0 / (ad * i0z + bd * i1z + gd * i2z)), dep = (float)(sum * id);
             if (s.depth_test(p.x, p.y, dep)) {
                 Vec4 p3 = (v[0] * (float)(ad * i0z) + v[1] * (float)(bd * i1z) + v[2] * (float)(gd * i2z)) * id;
                 auto col = Vec3();
