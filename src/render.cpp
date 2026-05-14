@@ -32,9 +32,6 @@ Renderer::Renderer() {
     Screen::init();
     mesh_num = 0;
     light_num = 0;
-    // Fresh profile logs each run
-    if (FILE* fp = nullptr; fopen_s(&fp, "profile.log", "w") == 0 && fp) fclose(fp);
-    if (FILE* fp = nullptr; fopen_s(&fp, "profile_worker.log", "w") == 0 && fp) fclose(fp);
 }
 
 Renderer::~Renderer() {
@@ -355,10 +352,6 @@ void Renderer::render_tile(const Tile& tile, TileScreen& ts) {
 void Renderer::worker_loop(const int thread_id) {
     int my_frame = 0;
 
-    // Per-worker accumulators (reset every profile interval)
-    thread_local double prof_render = 0, prof_down = 0, prof_alloc = 0;
-    thread_local int prof_cnt = 0;
-
     while (true) {
         // Wait for frame signal or shutdown
         std::unique_lock lock(mtx);
@@ -371,28 +364,8 @@ void Renderer::worker_loop(const int thread_id) {
         // Dynamic work distribution — reuse TileScreen buffer across tiles to avoid page faults
         TileScreen ts(0, 0, 0, 0, 0, 0);
         int ti;
-        while ((ti = tile_index.fetch_add(1, std::memory_order_relaxed)) < static_cast<int>(tiles.size())) {
+        while ((ti = tile_index.fetch_add(1, std::memory_order_relaxed)) < static_cast<int>(tiles.size()))
             render_tile(tiles[ti], ts);
-            prof_cnt++;
-        }
-
-        // Dump per-tile breakdown after accumulating ~500 tiles (≈ every 2 seconds)
-        if (prof_cnt >= 500) {
-            static long log_lock = 0;
-            if (InterlockedCompareExchange(&log_lock, 1, 0) == 0) {
-                FILE* fp = nullptr;
-                if (fopen_s(&fp, "profile_worker.log", "a") == 0 && fp) {
-                    fprintf(fp, "Worker %2d | %4d tiles | alloc=%5.2f  render=%5.2f  copy=%5.2f  avg_tile=%5.2f\n",
-                            thread_id, prof_cnt,
-                            prof_alloc, prof_render, prof_down,
-                            (prof_alloc + prof_render + prof_down) / prof_cnt);
-                    fclose(fp);
-                }
-                log_lock = 0;
-            }
-            prof_alloc = prof_render = prof_down = 0;
-            prof_cnt = 0;
-        }
 
         // Signal completion
         my_frame = current_frame.load(std::memory_order_acquire);
