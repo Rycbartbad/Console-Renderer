@@ -269,23 +269,39 @@ void Renderer::render_frame() {
 
 void Renderer::frustum_cull() {
     const size_t n = frame_meshes.size();
-    mesh_visible.resize(n, true);
+    mesh_visible.assign(n, true);
     if (n == 0) return;
 
-    // Camera frustum in camera space:
-    //   near z = n_near (1), far z = n_far (100)
-    //   x = ± aspect * z / (2 * n_near)
-    //   y = ± z / (2 * n_near)   (height = 1)
+    // Rebuild view matrix (same as prepare_frame) to transform centers
+    const float cos_ax = std::cos(camera.a_x);
+    const float sin_ax = std::sin(camera.a_x);
+    const float cos_ay = std::cos(camera.a_y);
+    const float sin_ay = std::sin(camera.a_y);
+    Mat4 Ry(Vec4(cos_ax, 0, -sin_ax, 0),
+            Vec4(0, 1, 0, 0),
+            Vec4(sin_ax, 0, cos_ax, 0),
+            Vec4(0, 0, 0, 1));
+    Mat4 Rx(Vec4(1, 0, 0, 0),
+            Vec4(0, cos_ay, sin_ay, 0),
+            Vec4(0, -sin_ay, cos_ay, 0),
+            Vec4(0, 0, 0, 1));
+    Mat4 T(Vec4(1, 0, 0, -camera.pos.x),
+           Vec4(0, 1, 0, -camera.pos.y),
+           Vec4(0, 0, 1, -camera.pos.z),
+           Vec4(0, 0, 0, 1));
+    const Mat4 view_matrix = Rx * Ry * T;
+
     const float cam_n = 1.0f;
     const float cam_f = 100.0f;
-    const float aspect = camera.width;   // screen.width / screen.height
+    const float aspect = camera.width;
     const float inv_2n = 1.0f / (2.0f * cam_n);
 
     for (size_t i = 0; i < n; i++) {
         const auto& mesh = frame_meshes[i];
-        const float cx = mesh.center.x;
-        const float cy = mesh.center.y;
-        const float cz = mesh.center.z;
+        const Vec4 center_cs = view_matrix * mesh.center;
+        const float cx = center_cs.x;
+        const float cy = center_cs.y;
+        const float cz = center_cs.z;
         const float r = mesh.bounding_radius;
         if (r <= 0) continue;  // no bounding volume, always visible
 
@@ -294,13 +310,13 @@ void Renderer::frustum_cull() {
         // Reject beyond far plane
         if (cz - r > cam_f) { mesh_visible[i] = false; continue; }
 
-        // Reject outside horizontal frustum (conservative: test at closest z)
-        float z_test = std::max(cz - r, cam_n);  // sphere's front toward camera
-        float half_w = aspect * z_test * inv_2n;
+        // Reject outside horizontal frustum (with 15% margin to avoid edge flicker)
+        float z_test = std::max(cz, cam_n);
+        float half_w = aspect * z_test * inv_2n * 1.15f;
         if (cx - r > half_w || cx + r < -half_w) { mesh_visible[i] = false; continue; }
 
         // Reject outside vertical frustum
-        float half_h = z_test * inv_2n;
+        float half_h = z_test * inv_2n * 1.15f;
         if (cy - r > half_h || cy + r < -half_h) { mesh_visible[i] = false; continue; }
 
         // Hi-Z occlusion test (from previous frame's depth)
@@ -562,7 +578,7 @@ bool Renderer::hiz_test(float cx, float cy, float cz, float radius) const {
     float hiz_depth = hiz_buffer[hx + hy * hiz_w];
     // If the sphere's nearest depth is beyond the Hi-Z depth, it's occluded
     float sphere_near_z = cz - radius;
-    return sphere_near_z > hiz_depth + 0.001f;
+    return sphere_near_z > hiz_depth + 0.5f;  // require 0.5 depth units of occlusion
 }
 
 void Renderer::hiz_update(int x, int y, int w, int h,
