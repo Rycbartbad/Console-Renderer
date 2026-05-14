@@ -9,6 +9,9 @@ find_package(Threads REQUIRED)
 if(WIN32)
     add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX)
     set(WIN32_LIBS kernel32 user32 gdi32 winspool shell32 ole32 oleaut32 uuid comdlg32 advapi32)
+    if(MSVC)
+        add_compile_options(/utf-8)
+    endif()
 endif()
 
 # ── Single-header render engine ───────────────────────────────────

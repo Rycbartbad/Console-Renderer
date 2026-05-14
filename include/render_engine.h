@@ -253,9 +253,9 @@ console_init() {
     GetConsoleMode(hOut, &mode);
     mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
     SetConsoleMode(hOut, mode);
-    printf(" 33[?25l");
+    printf("\033[?25l");
 #else
-    printf(" 33[?25l");
+    printf("\033[?25l");
     fflush(stdout);
     static bool raw = false;
     if (!raw) {
@@ -336,7 +336,7 @@ get_cursor_pos(int& x, int& y) {
     y = p.y;
 #else
     fflush(stdout);
-    write(STDOUT_FILENO, "x1b[6n", 4);
+    write(STDOUT_FILENO, "\x1b[6n", 4);
     termios old, tmp;
     tcgetattr(STDIN_FILENO, &old);
     tmp = old;
@@ -355,9 +355,9 @@ get_cursor_pos(int& x, int& y) {
             break;
     }
     tcsetattr(STDIN_FILENO, TCSANOW, &old);
-    buf[p] = '\\0';
+    buf[p] = '\0';
     int r = 0, c = 0;
-    if (sscanf(buf, "x1b[%d;%d", &r, &c) >= 2) {
+    if (sscanf(buf, "\x1b[%d;%d", &r, &c) >= 2) {
         x = c / 2;
         y = r - 1;
     } else {
@@ -943,7 +943,7 @@ append_spans(std::string& b, int cnt) {
         b.append((size_t)cnt, ' ');
     else {
         b += ' ';
-        b += "x1b[";
+        b += "\x1b[";
         append_uint(b, cnt - 1);
         b += 'b';
     }
@@ -962,9 +962,9 @@ Screen::draw() {
     output_buf.reserve((size_t)w * h * 30 + 1024);
     if (prev_buffer.size() != pc) {
         prev_buffer.assign(pc, 0);
-        output_buf = "[33[3J[33[H";
+        output_buf = "\033[3J\033[H";
         if (show_fps) {
-            output_buf += "[33[mFPS:";
+            output_buf += "\033[mFPS:";
             append_uint(output_buf, fps);
             output_buf += ' ';
         }
@@ -978,7 +978,7 @@ Screen::draw() {
                         break;
                     run++;
                 }
-                output_buf += "[33[48;2;";
+                output_buf += "\033[48;2;";
                 append_uint(output_buf, (c >> 16) & 0xFF);
                 output_buf += ';';
                 append_uint(output_buf, (c >> 8) & 0xFF);
@@ -989,14 +989,14 @@ Screen::draw() {
                 x += run;
             }
             if (bias)
-                output_buf += "[33[m ";
+                output_buf += "\033[m ";
         }
         prev_buffer = buffer;
         return;
     }
-    output_buf = "[33[H";
+    output_buf = "\033[H";
     if (show_fps) {
-        output_buf += "[33[mFPS:";
+        output_buf += "\033[mFPS:";
         append_uint(output_buf, fps);
         output_buf += ' ';
     }
@@ -1012,7 +1012,7 @@ Screen::draw() {
             }
             if (!dirty) {
                 dirty = true;
-                output_buf += "[33[";
+                output_buf += "\033[";
                 append_uint(output_buf, y + 1);
                 output_buf += ";1H";
             }
@@ -1022,9 +1022,9 @@ Screen::draw() {
                     break;
                 run++;
             }
-            output_buf += "[33[";
+            output_buf += "\033[";
             append_uint(output_buf, x * 2 + 1);
-            output_buf += "G[33[48;2;";
+            output_buf += "G\033[48;2;";
             append_uint(output_buf, (cur >> 16) & 0xFF);
             output_buf += ';';
             append_uint(output_buf, (cur >> 8) & 0xFF);
@@ -1199,9 +1199,9 @@ Screen::halton_sequence(int idx) {
 
 void
 Screen::show() const {
-    platform::console_write("x1b[?2026h", 8);
+    platform::console_write("\x1b[?2026h", 8);
     platform::console_write(output_buf.data(), output_buf.size());
-    platform::console_write("x1b[?2026l", 8);
+    platform::console_write("\x1b[?2026l", 8);
 }
 
 // ── Camera implementation ──────────────────────────────────────
