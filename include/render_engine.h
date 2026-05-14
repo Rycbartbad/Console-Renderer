@@ -1888,112 +1888,8 @@ Renderer::render_frame() {
     frustum_cull();
     camera.pre_project_verts(frame_meshes, frame_vert_proj);
     r_prep += p1.elapsed_ms();
-    // Adaptive tile partition
-    {
-        int w = screen.width, h = screen.height, nw = max(num_threads * 16, 4);
-        const int GW = 48, GH = 48;
-        vector<int> h2(GW * GH, 0);
-        for (int mi = 0; mi < (int)frame_meshes.size(); mi++) {
-            if (mi < (int)mesh_visible.size() && !mesh_visible[mi])
-                continue;
-            auto& m = frame_meshes[mi];
-            for (size_t ti = 0; ti + 2 < m.indices.size(); ti += 3) {
-                float sx = 0, sy = 0, mnx = 1e9f, mxx = -1e9f, mny = 1e9f, mxy = -1e9f;
-                int vld = 0;
-                for (int v = 0; v < 3; v++) {
-                    auto& vt = m.vertices[m.indices[ti + v]];
-                    if (vt.z > .001f) {
-                        float ssx = vt.x * h / vt.z + w * .5f, ssy = -vt.y * h / vt.z + h * .5f;
-                        sx += ssx;
-                        sy += ssy;
-                        if (ssx < mnx)
-                            mnx = ssx;
-                        if (ssx > mxx)
-                            mxx = ssx;
-                        if (ssy < mny)
-                            mny = ssy;
-                        if (ssy > mxy)
-                            mxy = ssy;
-                        vld++;
-                    }
-                }
-                if (vld < 3)
-                    continue;
-                float cx = sx / 3, cy = sy / 3;
-                if (cx < 0 || cx >= w || cy < 0 || cy >= h)
-                    continue;
-                int col = (int)(cx * GW / w), row = (int)(cy * GH / h);
-                col = clamp(col, 0, GW - 1);
-                row = clamp(row, 0, GH - 1);
-                h2[row * GW + col] += max(1, (int)((mxx - mnx) * (mxy - mny)));
-            }
-        }
-        int total = 0;
-        for (int c : h2)
-            total += c;
-        tiles.clear();
-        if (total == 0) {
-            tiles.push_back({ 0, w, 0, h });
-        } else {
-            vector<int> cs(GW, 0);
-            for (int c = 0; c < GW; c++)
-                for (int r = 0; r < GH; r++)
-                    cs[c] += h2[r * GW + c];
-            int tpt = max(1, total / nw);
-            struct CS {
-                int x0, x1;
-            };
-            vector<CS> cols;
-            int acc = 0, cx0 = 0;
-            for (int c = 0; c < GW && (int)cols.size() < nw - 1; c++) {
-                acc += cs[c];
-                if (acc >= tpt) {
-                    int x1 = (c + 1) * w / GW;
-                    if (x1 > cx0) {
-                        cols.push_back({ cx0, x1 });
-                        cx0 = x1;
-                        acc = 0;
-                    }
-                }
-            }
-            if (w > cx0)
-                cols.push_back({ cx0, w });
-            for (auto& col : cols) {
-                int cgx0 = col.x0 * GW / w, cgx1 = (col.x1 * GW + w - 1) / w;
-                cgx1 = min(cgx1, GW);
-                vector<int> rh(GH, 0);
-                for (int r = 0; r < GH; r++)
-                    for (int c = cgx0; c < cgx1; c++)
-                        rh[r] += h2[r * GW + c];
-                int ct = 0;
-                for (int r = 0; r < GH; r++)
-                    ct += rh[r];
-                if (ct == 0) {
-                    tiles.push_back({ col.x0, col.x1, 0, h });
-                    continue;
-                }
-                int mrc = max(1, nw / max(1, (int)cols.size()));
-                int nr = max(1, min(ct / tpt, mrc));
-                int rt = max(1, ct / nr);
-                acc = 0;
-                int ry0 = 0, rd = 0;
-                for (int r = 0; r < GH && rd < nr - 1; r++) {
-                    acc += rh[r];
-                    if (acc >= rt) {
-                        int y1 = (r + 1) * h / GH;
-                        if (y1 > ry0) {
-                            tiles.push_back({ col.x0, col.x1, ry0, y1 });
-                            ry0 = y1;
-                            acc = 0;
-                            rd++;
-                        }
-                    }
-                }
-                if (h > ry0)
-                    tiles.push_back({ col.x0, col.x1, ry0, h });
-            }
-        }
-    }
+    // Fixed grid tile partition (avoids reallocation spikes from adaptive partitioning)
+    tiles = partition_tiles(screen.width, screen.height, max(num_threads * 16, 128));
     if (aa_mode == TAA) {
         Vec2 j = Screen::halton_sequence(screen.get_taa_frame_count() + 1);
         camera.set_jitter(j.x / 1e6f, j.y / 1e6f);
@@ -2183,21 +2079,30 @@ Renderer::render_tile(const Tile& tile, TileScreen& ts) {
             pp += frame_meshes[mi].vertices.size();
         }
         size_t r1 = (size_t)screen.width;
-        // Fused: downsample color + downsample z (min) → write both to screen
+        // 1) Downsample color → ts.buffer (local, cache-hot write)
         for (int y = 0; y < th; y++)
             for (int x = 0; x < tw; x++) {
                 size_t s = (size_t)(x * 2) + (size_t)(y * 2) * (size_t)tw2;
                 Vec3 a0 = unpack_color(ts.buffer[s]), a1 = unpack_color(ts.buffer[s + 1]),
                      a2 = unpack_color(ts.buffer[s + tw2]), a3 = unpack_color(ts.buffer[s + tw2 + 1]);
-                size_t di = (size_t)(tile.x_start + x) + (size_t)(tile.y_start + y) * r1;
-                screen.buffer[di] = pack_color(
+                ts.buffer[(size_t)x + (size_t)y * (size_t)tw] = pack_color(
                   Vec3((a0.x + a1.x + a2.x + a3.x) / 4, (a0.y + a1.y + a2.y + a3.y) / 4,
                        (a0.z + a1.z + a2.z + a3.z) / 4));
+            }
+        // 2) Copy downsampled color → screen.buffer (fast memcpy)
+        for (int y = 0; y < th; y++)
+            memcpy(&screen.buffer[(size_t)tile.x_start + (size_t)(tile.y_start + y) * r1],
+                   &ts.buffer[(size_t)y * (size_t)tw],
+                   (size_t)tw * sizeof(Color));
+        // 3) Downsample z: min of 2×2 block → screen.z_buffer
+        for (int y = 0; y < th; y++)
+            for (int x = 0; x < tw; x++) {
+                size_t s = (size_t)(x * 2) + (size_t)(y * 2) * (size_t)tw2;
                 float zd = ts.z_buffer[s];
                 if (ts.z_buffer[s + 1] > 0.001f && ts.z_buffer[s + 1] < zd) zd = ts.z_buffer[s + 1];
                 if (ts.z_buffer[s + tw2] > 0.001f && ts.z_buffer[s + tw2] < zd) zd = ts.z_buffer[s + tw2];
                 if (ts.z_buffer[s + tw2 + 1] > 0.001f && ts.z_buffer[s + tw2 + 1] < zd) zd = ts.z_buffer[s + tw2 + 1];
-                screen.z_buffer[di] = zd;
+                screen.z_buffer[(size_t)tile.x_start + x + (size_t)(tile.y_start + y) * r1] = zd;
             }
     } else {
         ts.resize_if_needed(screen.width, screen.height, tile.x_start, tile.y_start, tw, th);
