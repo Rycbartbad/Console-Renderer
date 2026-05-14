@@ -310,13 +310,13 @@ void Renderer::frustum_cull() {
         // Reject beyond far plane
         if (cz - r > cam_f) { mesh_visible[i] = false; continue; }
 
-        // Reject outside horizontal frustum (with 15% margin to avoid edge flicker)
+        // Reject outside horizontal frustum
         float z_test = std::max(cz, cam_n);
-        float half_w = aspect * z_test * inv_2n * 1.15f;
+        float half_w = aspect * z_test * inv_2n;
         if (cx - r > half_w || cx + r < -half_w) { mesh_visible[i] = false; continue; }
 
         // Reject outside vertical frustum
-        float half_h = z_test * inv_2n * 1.15f;
+        float half_h = z_test * inv_2n;
         if (cy - r > half_h || cy + r < -half_h) { mesh_visible[i] = false; continue; }
 
         // Hi-Z occlusion test (from previous frame's depth)
