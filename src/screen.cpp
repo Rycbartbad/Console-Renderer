@@ -328,17 +328,15 @@ void Screen::apply_taa() {
             const Vec3& current = buffer[idx];
             const Vec3& history = taa_history[idx];
 
-            // AABB from 3x3 neighborhood of current frame
+            // Luminance-based AABB from 3×3 neighborhood (per-channel AABB is too sensitive)
+            float luma[9]; int li = 0;
             int min_r = 255, max_r = 0;
             int min_g = 255, max_g = 0;
             int min_b = 255, max_b = 0;
-
             for (int dy = -1; dy <= 1; dy++) {
                 for (int dx = -1; dx <= 1; dx++) {
-                    const int nx = x + dx;
-                    const int ny = y + dy;
+                    const int nx = x + dx, ny = y + dy;
                     if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
-
                     const Vec3& n = buffer[nx + ny * width];
                     if (n.x < min_r) min_r = n.x;
                     if (n.x > max_r) max_r = n.x;
@@ -346,23 +344,36 @@ void Screen::apply_taa() {
                     if (n.y > max_g) max_g = n.y;
                     if (n.z < min_b) min_b = n.z;
                     if (n.z > max_b) max_b = n.z;
+                    luma[li++] = 0.299f * n.x + 0.587f * n.y + 0.114f * n.z;
                 }
             }
 
-            // Clamp history color to neighborhood AABB (anti-ghosting)
+            // Softened clamp: lerp history toward clamped value
+            float luma_min = luma[0], luma_max = luma[0];
+            for (int i = 1; i < li; i++) {
+                if (luma[i] < luma_min) luma_min = luma[i];
+                if (luma[i] > luma_max) luma_max = luma[i];
+            }
+            float hist_luma = 0.299f * history.x + 0.587f * history.y + 0.114f * history.z;
+            float clamp_factor = 1.0f;
+            if (hist_luma < luma_min || hist_luma > luma_max) {
+                // History is outside neighborhood → reduce its influence
+                clamp_factor = 0.3f;
+            }
+
             Vec3 clamped;
             clamped.x = clamp(history.x, min_r, max_r);
             clamped.y = clamp(history.y, min_g, max_g);
             clamped.z = clamp(history.z, min_b, max_b);
-
-            // Blend: 60% history, 40% current (faster convergence, less ghosting)
+            // Blend: 50% history, 50% current
+            constexpr float BLEND = 0.5f;
             aa_scratch[idx] = Vec3(
                 static_cast<int>(lerp(static_cast<float>(clamped.x),
-                    static_cast<float>(current.x), 0.4f)),
+                    static_cast<float>(current.x), BLEND)),
                 static_cast<int>(lerp(static_cast<float>(clamped.y),
-                    static_cast<float>(current.y), 0.15f)),
+                    static_cast<float>(current.y), BLEND)),
                 static_cast<int>(lerp(static_cast<float>(clamped.z),
-                    static_cast<float>(current.z), 0.15f))
+                    static_cast<float>(current.z), BLEND))
             );
         }
     }

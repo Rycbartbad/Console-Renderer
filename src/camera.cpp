@@ -51,11 +51,10 @@ void Camera::load(Screen& screen, const Mesh& mesh, const std::vector<Light>& li
     const float sx = 0.5f * screen.width;
     const float sy = 0.5f * screen.height;
 
-    // Apply TAA jitter to projection (±0.5 pixel in screen space)
-    // This shifts both rendering position (cv) and attributes (bd) consistently.
+    // Apply TAA jitter to projection (±0.3 pixel in screen space — lower amplitude reduces flicker)
     if ((jitter_x != 0.0f || jitter_y != 0.0f) && vn > 0) {
-        const float jx = jitter_x * 2.0f / screen.width;
-        const float jy = jitter_y * 2.0f / screen.height;
+        const float jx = jitter_x * 1.2f / screen.width;
+        const float jy = jitter_y * 1.2f / screen.height;
         for (int vi = 0; vi < vn; vi++)
             if (vbuf[vi].w > 0.001f) {
                 vbuf[vi].x += jx * vbuf[vi].w;
