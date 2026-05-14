@@ -43,7 +43,7 @@ bool Screen::depth_test(const int x, const int y, const float z) const {
 }
 
 // Fast integer-to-string append for 0-9999 (covers color values 0-255 and
-// cursor positions up to x*2+1 â‰?1923).
+// cursor positions up to x*2+1 ï¿½?1923).
 static void append_uint(std::string& buf, int n) {
     if (n >= 1000) {
         buf += static_cast<char>('0' + n / 1000);
@@ -63,11 +63,11 @@ static void append_uint(std::string& buf, int n) {
 }
 
 // Append spaces using REP CSI n b (repeat last char) when beneficial.
-// \x1b[ Nb  repeats the last graphic character N times â€?supported by
-// Windows Terminal, iTerm2, Kitty, xterm, etc.  Saves bandwidth for runs â‰?3 pixels.
+// \x1b[ Nb  repeats the last graphic character N times ï¿½?supported by
+// Windows Terminal, iTerm2, Kitty, xterm, etc.  Saves bandwidth for runs ï¿½?3 pixels.
 static void append_spans(std::string& buf, int count) {
     if (count <= 0) return;
-    if (count < 6) {  // runs â‰?3 pixels: plain spaces are shorter than ESC sequence
+    if (count < 6) {  // runs ï¿½?3 pixels: plain spaces are shorter than ESC sequence
         buf.append(static_cast<size_t>(count), ' ');
     } else {
         buf += ' ';  // prime the repeat buffer with the space character
@@ -204,7 +204,7 @@ void Screen::calculate_fps(double frame_time_ms) {
 }
 
 void Screen::apply_ssaa() {
-    // Downsample 2Ã—2 blocks to 1 pixel â€?inlined for speed, no lambda/ptr-to-member overhead
+    // Downsample 2Ã—2 blocks to 1 pixel ï¿½?inlined for speed, no lambda/ptr-to-member overhead
     if (width < 2 || height < 2) return;
     const int w2 = width, h2 = height;
     const int nw = w2 / 2, nh = h2 / 2;
@@ -269,7 +269,7 @@ void Screen::apply_fxaa() {
 
             Vec3 result;
             if (horz_grad > vert_grad) {
-                // Horizontal edge â†?blend vertically
+                // Horizontal edge ï¿½?blend vertically
                 const int ry0 = (std::max)(y - 1, 0);
                 const int ry1 = (std::min)(y + 1, height - 1);
                 const Vec3& above = buffer[x + ry0 * width];
@@ -283,7 +283,7 @@ void Screen::apply_fxaa() {
                         (above.z + below.z) * 0.5f, 0.5f))
                 );
             } else {
-                // Vertical edge â†?blend horizontally
+                // Vertical edge ï¿½?blend horizontally
                 const int rx0 = (std::max)(x - 1, 0);
                 const int rx1 = (std::min)(x + 1, width - 1);
                 const Vec3& left_neighbor = buffer[rx0 + y * width];
@@ -314,7 +314,7 @@ void Screen::apply_taa() {
 
     const size_t pixel_count = width * height;
 
-    // First frame or size mismatch â†?initialize history
+    // First frame or size mismatch ï¿½?initialize history
     if (taa_history.size() != pixel_count) {
         taa_history = buffer;
         return;
@@ -355,10 +355,10 @@ void Screen::apply_taa() {
             clamped.y = clamp(history.y, min_g, max_g);
             clamped.z = clamp(history.z, min_b, max_b);
 
-            // Blend: 85% history, 15% current
+            // Blend: 60% history, 40% current (faster convergence, less ghosting)
             aa_scratch[idx] = Vec3(
                 static_cast<int>(lerp(static_cast<float>(clamped.x),
-                    static_cast<float>(current.x), 0.15f)),
+                    static_cast<float>(current.x), 0.4f)),
                 static_cast<int>(lerp(static_cast<float>(clamped.y),
                     static_cast<float>(current.y), 0.15f)),
                 static_cast<int>(lerp(static_cast<float>(clamped.z),

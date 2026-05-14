@@ -1,10 +1,10 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "d:\\clion 2025.2.2\\project\\src\\camera.cpp",
+        "Source": "d:\\clion 2025.2.2\\project\\src\\render.cpp",
         "ProvidedModule": "",
         "Includes": [
-            "d:\\clion 2025.2.2\\project\\include\\camera.h",
+            "d:\\clion 2025.2.2\\project\\include\\render.h",
             "d:\\clion 2025.2.2\\project\\include\\math_utils.h",
             "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\cmath",
             "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\yvals.h",
@@ -99,6 +99,7 @@
             "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\__msvc_bit_utils.hpp",
             "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\__msvc_sanitizer_annotate_container.hpp",
             "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\xpolymorphic_allocator.h",
+            "d:\\clion 2025.2.2\\project\\include\\camera.h",
             "d:\\clion 2025.2.2\\project\\include\\light.h",
             "d:\\clion 2025.2.2\\project\\include\\graphics.h",
             "d:\\clion 2025.2.2\\project\\include\\screen.h",
@@ -282,7 +283,14 @@
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\ime_cmodes.h",
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\conio.h",
             "d:\\clion 2025.2.2\\project\\include\\transform.h",
-            "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\variant"
+            "d:\\clion 2025.2.2\\project\\include\\layer2d.h",
+            "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\functional",
+            "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\unordered_map",
+            "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\xhash",
+            "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\list",
+            "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\xnode_handle.h",
+            "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\mutex",
+            "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.44.35207\\include\\condition_variable"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

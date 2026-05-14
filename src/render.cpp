@@ -179,7 +179,7 @@ void Renderer::render_frame() {
     }
 
     if (aa_mode == TAA) {
-        Vec2 j = Screen::halton_sequence(screen.get_taa_frame_count() + 1);
+        Vec2 j = Screen::halton_sequence(screen.get_taa_frame_count() + 5);  // +5 to skip zero-jitter frames
         constexpr float SCALE = 1000000.0f;
         camera.set_jitter(j.x / SCALE, j.y / SCALE);
     } else {
