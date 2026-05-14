@@ -4,7 +4,7 @@
 
 int Screen::counter_t = 0;
 int Screen::fps = 0;
-std::chrono::high_resolution_clock::time_point Screen::hp_start = std::chrono::high_resolution_clock::now();
+std::chrono::high_resolution_clock::time_point Screen::hp_start;
 
 Screen::Screen() {
     width = height = 0;
@@ -174,12 +174,10 @@ void Screen::draw() {
 
 void Screen::calculate_fps() {
     ++counter_t;
-    if (counter_t >= 60) {
-        auto now = std::chrono::high_resolution_clock::now();
-        double dt = std::chrono::duration<double, std::milli>(now - hp_start).count();
-        if (dt > 0.001) {
-            fps = static_cast<int>(60000.0 / dt + 0.5);
-        }
+    auto now = std::chrono::high_resolution_clock::now();
+    double dt = std::chrono::duration<double, std::milli>(now - hp_start).count();
+    if (counter_t >= 60 && dt > 0.001) {
+        fps = static_cast<int>(1000.0 * 60.0 / dt + 0.5);
         hp_start = now;
         counter_t = 0;
     }
