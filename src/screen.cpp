@@ -175,36 +175,19 @@ void Screen::draw() {
 }
 
 void Screen::calculate_fps(double frame_time_ms) {
-    // 1-second sliding window for min/max/avg
-    static double window_start = 0.0;
-    static double accumulated = 0.0;
-    static int count = 0;
+    // Track instantaneous FPS min/max over a 1-second window
+    static double window_ms = 0.0;
+    fps_min = std::min(fps_min, 1000.0 / frame_time_ms);
+    fps_max = std::max(fps_max, 1000.0 / frame_time_ms);
+    window_ms += frame_time_ms;
 
-    accumulated += frame_time_ms;
-    count++;
-
-    if (accumulated >= 1000.0 || count >= 10000) {
-        double avg = accumulated / count;
-        double current_fps = 1000.0 / avg;
-        if (current_fps < fps_min) fps_min = current_fps;
-        if (current_fps > fps_max) fps_max = current_fps;
-        fps = static_cast<int>(current_fps + 0.5);
-        fps_sum += current_fps;
-        fps_count++;
-
-        // Build display string every ~1s
-        if (accumulated >= 1000.0) {
-            char buf[64];
-            std::snprintf(buf, sizeof(buf), "fps: %.0f/%.0f", fps_min, fps_max);
-            fps_display = buf;
-            fps_min = 1e9;
-            fps_max = 0;
-            fps_sum = 0;
-            fps_count = 0;
-        }
-
-        accumulated = 0.0;
-        count = 0;
+    if (window_ms >= 1000.0) {
+        char buf[64];
+        std::snprintf(buf, sizeof(buf), "fps: %.0f/%.0f", fps_min, fps_max);
+        fps_display = buf;
+        fps_min = 1e9;
+        fps_max = 0;
+        window_ms = 0.0;
     }
 }
 
