@@ -90,58 +90,88 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
 
     // ── Non-blocking face-rotation animation state ────────────────────────
     static bool animating = false;
-    static Vec4 anim_axis;        // scene-relative axis for mesh animation
+    static int anim_face;          // which face is rotating (0-5)
     static std::vector<int> anim_blk;
     static int anim_frames = 0;
     static constexpr int TOTAL_FRAMES = 9;
 
     // Start a new rotation from keyboard input (only if not already animating)
     if (!animating && platform::kbhit()) {
-        Vec4 axis;          // scene-relative (from axis_base)
         Vec4 waxis;         // world-axis for block positions
         std::vector<int> blk;
+        int face = -1;
         bool rotate = false;
 
         switch (platform::getch()) {
             case 'f': // 前面
-                axis = axis_base[2] * (-1);
-                waxis = Vec4(0, 0, -1, 0);
+                waxis = Vec4(0, 0, -1, 0); face = 0;
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].z == -1) { blk.push_back(i); rotate = true; }
                 break;
             case 'b': // 后面
-                axis = axis_base[2];
-                waxis = Vec4(0, 0, 1, 0);
+                waxis = Vec4(0, 0, 1, 0); face = 1;
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].z == 1) { blk.push_back(i); rotate = true; }
                 break;
             case 'l': // 左面
-                axis = axis_base[0] * (-1);
-                waxis = Vec4(-1, 0, 0, 0);
+                waxis = Vec4(-1, 0, 0, 0); face = 2;
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].x == -1) { blk.push_back(i); rotate = true; }
                 break;
             case 'r': // 右面
-                axis = axis_base[0];
-                waxis = Vec4(1, 0, 0, 0);
+                waxis = Vec4(1, 0, 0, 0); face = 3;
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].x == 1) { blk.push_back(i); rotate = true; }
                 break;
             case 'd': // 下面
-                axis = axis_base[1] * (-1);
-                waxis = Vec4(0, -1, 0, 0);
+                waxis = Vec4(0, -1, 0, 0); face = 4;
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].y == -1) { blk.push_back(i); rotate = true; }
                 break;
             case 'u': // 上面
-                axis = axis_base[1];
-                waxis = Vec4(0, 1, 0, 0);
+                waxis = Vec4(0, 1, 0, 0); face = 5;
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].y == 1) { blk.push_back(i); rotate = true; }
                 break;
             default:
                 break;
         }
+
+        if (rotate) {
+            for (int i : blk)
+                Transform::rotate(blocks[i], waxis, pi/2);
+            animating = true;
+            anim_face = face;
+            anim_blk = std::move(blk);
+            anim_frames = TOTAL_FRAMES;
+        }
+    }
+
+    // Apply one animation step per frame (non-blocking, pi/18 × 9 = 90°)
+    // Derive the scene-relative axis from axis_base each frame so mouse
+    // drags during the animation stay in sync with the scene orientation.
+    if (animating) {
+        static const Vec4 face_axis[6] = {
+            Vec4(0, 0, -1, 0),  // 0: back   axis_base[2] * -1
+            Vec4(1, 0, 0, 0),   // 1: right  axis_base[0]
+            Vec4(0, 0, 1, 0),   // 2: front  axis_base[2]
+            Vec4(-1, 0, 0, 0),  // 3: left   axis_base[0] * -1
+            Vec4(0, 1, 0, 0),   // 4: top    axis_base[1]
+            Vec4(0, -1, 0, 0),  // 5: bottom axis_base[1] * -1
+        };
+        // Transform world-space face axis → scene-space via axis_base rotation matrix
+        const Vec4& b = face_axis[anim_face];
+        Vec4 scene_axis(
+            b.x * axis_base[0].x + b.y * axis_base[1].x + b.z * axis_base[2].x,
+            b.x * axis_base[0].y + b.y * axis_base[1].y + b.z * axis_base[2].y,
+            b.x * axis_base[0].z + b.y * axis_base[1].z + b.z * axis_base[2].z,
+            0
+        );
+        for (const int i : anim_blk)
+            Transform::rotate(*meshes[i], scene_axis, pi / 18);
+        if (--anim_frames <= 0)
+            animating = false;
+    }
 
         if (rotate) {
             // Logical positions use WORLD axes so face detection stays correct
