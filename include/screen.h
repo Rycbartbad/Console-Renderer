@@ -50,6 +50,7 @@ public:
     void draw();
     static void calculate_fps(double frame_time_ms);
     static int get_fps() { return fps; }
+    static const std::string& get_fps_display() { return fps_display; }
     void show() const;
     void apply_ssaa();
     void apply_fxaa();
@@ -66,6 +67,9 @@ public:
 
 private:
     static int counter_t, fps;
+    static double fps_min, fps_max, fps_sum;
+    static int fps_count;
+    static std::string fps_display;
     static std::chrono::high_resolution_clock::time_point hp_start;
 
     std::vector<Vec3> taa_history;
