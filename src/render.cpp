@@ -277,10 +277,10 @@ void Renderer::composite_layers() {
     }
     overlay.clear();
 
-    // FPS overlay (normalized position + proportional font size)
+    // FPS overlay (top-left, gray)
     int fps = Screen::get_fps();
     std::string fps_text = "FPS: " + std::to_string(fps);
-    overlay.draw_text(0.9f, 0.02f, fps_text, Vec3(0, 255, 0), Vec3(0, 0, 0), screen.width / 360.0f);
+    overlay.draw_text(0.01f, 0.01f, fps_text, Vec3(180, 180, 180), Vec3(0, 0, 0), screen.width / 500.0f);
 
     overlay.composite_to(screen.buffer, screen.width, screen.height);
 }
