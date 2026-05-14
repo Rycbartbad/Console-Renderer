@@ -24,6 +24,8 @@ set(SOURCES
         src/graphics.cpp
         src/render.cpp
         src/rubik_cube.cpp
+        src/layer2d.cpp
+        src/tui.cpp
 )
 
 # 头文件目录

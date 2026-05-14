@@ -197,6 +197,9 @@ void Renderer::render_frame() {
         std::this_thread::yield();
     t_worker_wait += ww_sw.elapsed_ms();
 
+    // Composite 2D overlay layers on top of 3D scene
+    composite_layers();
+
     Stopwatch cmp_sw;
     composite_frame();
     t_composite += cmp_sw.elapsed_ms();
@@ -266,6 +269,20 @@ void Renderer::prepare_frame() {
     frame_lights = lights;
     for (auto& light : frame_lights)
         light.pos = view_matrix * light.pos;
+}
+
+void Renderer::composite_layers() {
+    // Resize overlay when console dimensions change
+    if (overlay.width() != screen.width || overlay.height() != screen.height) {
+        overlay = Layer2D(screen.width, screen.height, 10);
+    }
+    overlay.clear();  // transparent by default
+
+    // Future: draw TUI / HUD widgets here
+    // overlay.draw_text(8, 8, "FPS: " + std::to_string(screen.fps), Vec3(0,255,0), Vec3(0,0,0), 2);
+
+    // Composite onto the 3D scene buffer
+    overlay.composite_to(screen.buffer, screen.width, screen.height);
 }
 
 void Renderer::composite_frame() {

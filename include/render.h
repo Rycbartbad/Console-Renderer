@@ -6,6 +6,7 @@
 #include "camera.h"
 #include "screen.h"
 #include "transform.h"
+#include "layer2d.h"
 #include <vector>
 #include <functional>
 #include <mutex>
@@ -58,6 +59,10 @@ private:
 
     // Per-frame vertex projection cache (avoids re-projection per tile per mesh)
     std::vector<Vec4> frame_vert_proj;
+
+    // 2D overlay layer (composited on top of 3D scene)
+    Layer2D overlay{0, 0, 10};
+    void composite_layers();
 
     // Thread synchronization
     std::vector<std::thread> workers;

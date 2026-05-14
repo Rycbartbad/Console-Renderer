@@ -25,6 +25,12 @@
     <ClCompile Include="D:\CLion 2025.2.2\Project\src\rubik_cube.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\CLion 2025.2.2\Project\src\layer2d.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\CLion 2025.2.2\Project\src\tui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="D:\CLion 2025.2.2\Project\CMakeLists.txt" />

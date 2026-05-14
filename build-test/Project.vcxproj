@@ -376,6 +376,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="D:\CLion 2025.2.2\Project\src\graphics.cpp" />
     <ClCompile Include="D:\CLion 2025.2.2\Project\src\render.cpp" />
     <ClCompile Include="D:\CLion 2025.2.2\Project\src\rubik_cube.cpp" />
+    <ClCompile Include="D:\CLion 2025.2.2\Project\src\layer2d.cpp" />
+    <ClCompile Include="D:\CLion 2025.2.2\Project\src\tui.cpp" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

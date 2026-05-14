@@ -1,0 +1,54 @@
+
+#ifndef PROJECT_LAYER2D_H
+#define PROJECT_LAYER2D_H
+
+#include "math_utils.h"
+#include <string>
+#include <vector>
+#include <memory>
+
+// ── 2D console cell ──────────────────────────────────────────────────────
+struct Cell {
+    Vec3 bg = Vec3(0, 0, 0);       // background color
+    Vec3 fg = Vec3(255, 255, 255); // foreground color
+    char ch = ' ';                  // character
+    bool transparent = false;      // if true, skip this cell during composite
+    bool has_text = false;         // if true, output ch instead of space
+};
+
+// ── Layer2D: a z-ordered 2D drawing surface ──────────────────────────────
+class Layer2D {
+public:
+    Layer2D(int width, int height, int z_order = 0);
+
+    int width()  const { return m_width; }
+    int height() const { return m_height; }
+    int z()      const { return m_z; }
+    void set_z(int z) { m_z = z; }
+
+    void set_visible(bool v) { m_visible = v; }
+    bool visible() const { return m_visible; }
+
+    // Clear entire layer
+    void clear(Vec3 bg = Vec3(0, 0, 0));
+
+    // ── Drawing primitives ───────────────────────────────────────────────
+    void set_cell(int x, int y, char ch, Vec3 fg = Vec3(255,255,255), Vec3 bg = Vec3(0,0,0));
+    void fill_rect(int x, int y, int w, int h, Vec3 bg);
+    void draw_border(int x, int y, int w, int h, Vec3 color = Vec3(200,200,200));
+    void draw_text(int x, int y, const std::string& text, Vec3 fg = Vec3(255,255,255), Vec3 bg = Vec3(0,0,0), int scale = 1);
+    void draw_line(int x0, int y0, int x1, int y1, Vec3 color = Vec3(200,200,200));
+
+    const Cell& cell(int x, int y) const { return m_cells[x + y * m_width]; }
+    Cell& cell(int x, int y) { return m_cells[x + y * m_width]; }
+
+    // Composite this layer onto a Vec3 color buffer
+    void composite_to(std::vector<Vec3>& target, int target_w, int target_h) const;
+
+private:
+    int m_width, m_height, m_z;
+    bool m_visible = true;
+    std::vector<Cell> m_cells;
+};
+
+#endif // PROJECT_LAYER2D_H
