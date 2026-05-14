@@ -1,8 +1,7 @@
 #include "rubik_cube.h"
 #include "transform.h"
 #include "mesh.h"
-#include <conio.h>
-#include <windows.h>
+#include "platform.h"
 
 RubikCube::RubikCube(const float length) {
     const float len = length / 3;
@@ -50,12 +49,12 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
         Vec4(0, 0, 1, 0)
     };
     
-    if (_kbhit()) {
+    if (platform::kbhit()) {
         bool rotate = false;
         Vec4 axis;
         std::vector<int> blk;
         
-        switch (_getch()) {
+        switch (platform::getch()) {
             case 'f': // 前面
                 axis = axis_base[2] * (-1);
                 for (int i = 0; i < 27; ++i) {
@@ -126,18 +125,18 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
                 for (const auto& i : blk) {
                     Transform::rotate(*meshes[i], axis, pi/18);
                 }
-                Sleep(times);
+                platform::sleep_ms(times);
             }
         }
     }
     
-    static POINT p1, p2;
-    GetCursorPos(&p1);
-    const float angel_x = (p2.x - p1.x) * pi / 360.0f;
-    const float angel_y = (p2.y - p1.y) * pi / 360.0f;
-    p2 = p1;
+    static int p1x = 0, p1y = 0, p2x = 0, p2y = 0;
+    platform::get_cursor_pos(p1x, p1y);
+    const float angel_x = (p2x - p1x) * pi / 360.0f;
+    const float angel_y = (p2y - p1y) * pi / 360.0f;
+    p2x = p1x; p2y = p1y;
 
-    if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
+    if (platform::key_down(VK_RBUTTON)) {
         for (auto& axis : axis_base) {
             Transform::rotate(axis, Vec4(0, 1, 0, 0), angel_x);
             Transform::rotate(axis, Vec4(1, 0, 0, 0), angel_y);

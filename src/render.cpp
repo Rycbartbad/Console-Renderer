@@ -1,26 +1,13 @@
 #include "render.h"
 #include "graphics.h"
 #include "transform.h"
+#include "platform.h"
 #include <thread>
-#include <windows.h>
 #include <cstring>
 #include <cstdio>
 #include <string>
 
-// ── High-precision timing helper ──────────────────────────────────────────
-struct Stopwatch {
-    LARGE_INTEGER start{};
-    static LARGE_INTEGER freq;
-
-    Stopwatch() { QueryPerformanceCounter(&start); }
-    [[nodiscard]] double elapsed_ms() const {
-        LARGE_INTEGER now;
-        QueryPerformanceCounter(&now);
-        return 1000.0 * (now.QuadPart - start.QuadPart) / freq.QuadPart;
-    }
-    void reset() { QueryPerformanceCounter(&start); }
-};
-LARGE_INTEGER Stopwatch::freq = []{ LARGE_INTEGER f; QueryPerformanceFrequency(&f); return f; }();
+// ── High-precision timing helper (cross-platform, in platform.h) ─────────
 
 // Per-frame timing accumulators (reset every PRINT_INTERVAL frames)
 static double t_prepare = 0, t_worker_wait = 0, t_composite = 0, t_total = 0, t_bufalloc = 0;
@@ -230,8 +217,8 @@ void Renderer::render_frame() {
             t_bufalloc / n, t_prepare / n,
             t_worker_wait / n, t_aa / n, t_draw / n, t_show / n, t_composite / n,
             t_total / n, 1000.0 / (t_total / n));
-        FILE* fp = nullptr;
-        if (fopen_s(&fp, "profile.log", "a") == 0 && fp) {
+        FILE* fp = fopen("profile.log", "a");
+        if (fp) {
             if (ftell(fp) == 0) fputs("===== Profile Log =====\n", fp);
             fputs(buf, fp);
             fclose(fp);
@@ -386,27 +373,15 @@ void Renderer::set_camera_pos(const Vec4& pos) {
     camera.pos = pos;
 }
 
-// Count physical CPU cores (excludes hyperthreads)
-static int physical_core_count() {
-    DWORD len = 0;
-    GetLogicalProcessorInformation(nullptr, &len);
-    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER || len == 0)
-        return std::thread::hardware_concurrency() / 2;
-    auto buf = std::make_unique<SYSTEM_LOGICAL_PROCESSOR_INFORMATION[]>(len / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
-    if (!GetLogicalProcessorInformation(buf.get(), &len))
-        return std::thread::hardware_concurrency() / 2;
-    int cores = 0;
-    for (DWORD i = 0; i < len / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); i++) {
-        if (buf[i].Relationship == RelationProcessorCore) cores++;
-    }
-    return std::max(1, cores);
+// Count available hardware threads (cross-platform)
+static int hardware_thread_count() {
+    return std::max(1, static_cast<int>(std::thread::hardware_concurrency()));
 }
 
 void Renderer::launch() {
-    if (running) return; // prevent double-launch
+    if (running) return;
 
-    // Use all logical cores — at 961×330 the workload is heavy enough to benefit from HT
-    num_threads = std::max(1, static_cast<int>(std::thread::hardware_concurrency()));
+    num_threads = hardware_thread_count();
     running = true;
 
     for (int i = 0; i < num_threads; i++) {

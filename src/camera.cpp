@@ -2,7 +2,6 @@
 #include "screen.h"
 #include "transform.h"
 #include "graphics.h"
-#include <windows.h>
 #include <cmath>
 #include <variant>
 
@@ -12,8 +11,8 @@ Camera::Camera() {
     f = 100;
     pos = Vec4(0, 0, 0, 1);
     a_x = a_y = 0;
-    GetCursorPos(&p1);
-    p2 = p1;
+    platform::get_cursor_pos(p1x, p1y);
+    p2x = p1x; p2y = p1y;
 }
 
 void Camera::update_from(const Screen& screen) {
@@ -189,23 +188,23 @@ void Camera::division(Vec4& i) {
 
 void Camera::controller() {
     constexpr float speed = 0.1f;
-    if (GetAsyncKeyState('W') & 0x8000)
+    if (platform::key_down('W'))
         Transform::translate(pos, Vec4(sin(a_x), 0, cos(a_x), 0) * speed);
-    if (GetAsyncKeyState('S') & 0x8000)
+    if (platform::key_down('S'))
         Transform::translate(pos, Vec4(-sin(a_x), 0, -cos(a_x), 0) * speed);
-    if (GetAsyncKeyState('A') & 0x8000)
+    if (platform::key_down('A'))
         Transform::translate(pos, Vec4(-cos(a_x), 0, sin(a_x), 0) * speed);
-    if (GetAsyncKeyState('D') & 0x8000)
+    if (platform::key_down('D'))
         Transform::translate(pos, Vec4(cos(a_x), 0, -sin(a_x), 0) * speed);
-    if (GetAsyncKeyState('Q') & 0x8000)
+    if (platform::key_down('Q'))
         Transform::translate(pos, Vec4(0, 1, 0, 0) * speed);
-    if (GetAsyncKeyState('E') & 0x8000)
+    if (platform::key_down('E'))
         Transform::translate(pos, Vec4(0, -1, 0, 0) * speed);
 
-    GetCursorPos(&p1);
-    const float angel_x = (p1.x - p2.x) * pi / 360.0f;
-    const float angel_y = (p1.y - p2.y) * pi / 360.0f;
-    p2 = p1;
+    platform::get_cursor_pos(p1x, p1y);
+    const float angel_x = (p1x - p2x) * pi / 360.0f;
+    const float angel_y = (p1y - p2y) * pi / 360.0f;
+    p2x = p1x; p2y = p1y;
     
     if (a_x + angel_x > pi * 2)
         a_x += angel_x - pi * 2;
