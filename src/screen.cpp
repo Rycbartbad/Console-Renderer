@@ -354,5 +354,8 @@ Vec2 Screen::halton_sequence(int index) {
 }
 
 void Screen::show() const {
-    std::cout << output_buf;
+    // Synchronized Update (DEC private mode 2026): terminal buffers the frame and
+    // atomically swaps on \x1b[?2026l, eliminating tearing and redundant repaints.
+    // Supported by iTerm2, Windows Terminal, Kitty, etc.
+    std::cout << "\x1b[?2026h" << output_buf << "\x1b[?2026l";
 }
