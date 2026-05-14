@@ -2,10 +2,9 @@
 #include "platform.h"
 #include <cstdio>
 
-clock_t Screen::start_t = 0;
-clock_t Screen::end_t = 0;
 int Screen::counter_t = 0;
 int Screen::fps = 0;
+std::chrono::high_resolution_clock::time_point Screen::hp_start = std::chrono::high_resolution_clock::now();
 
 Screen::Screen() {
     width = height = 0;
@@ -16,7 +15,7 @@ Screen::Screen() {
 
 void Screen::init() {
     platform::console_init();
-    start_t = clock();
+    hp_start = std::chrono::high_resolution_clock::now();
     counter_t = 0;
 }
 
@@ -175,12 +174,13 @@ void Screen::draw() {
 
 void Screen::calculate_fps() {
     ++counter_t;
-    end_t = clock();
-    if (end_t - start_t == 0) return;
-    if (counter_t >= 100) {
-        
-        fps = CLOCKS_PER_SEC * 100 / (end_t - start_t);
-        start_t = clock();
+    if (counter_t >= 60) {
+        auto now = std::chrono::high_resolution_clock::now();
+        double dt = std::chrono::duration<double, std::milli>(now - hp_start).count();
+        if (dt > 0.001) {
+            fps = static_cast<int>(60000.0 / dt + 0.5);
+        }
+        hp_start = now;
         counter_t = 0;
     }
 }

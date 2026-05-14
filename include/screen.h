@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include <chrono>
 
 struct Tile {
     int x_start, x_end;
@@ -64,8 +65,8 @@ public:
     bool bias, SSAA, show_fps;
 
 private:
-    static clock_t start_t, end_t;
     static int counter_t, fps;
+    static std::chrono::high_resolution_clock::time_point hp_start;
 
     std::vector<Vec3> taa_history;
     std::vector<Vec3> aa_scratch;  // reusable buffer for AA post-processing
