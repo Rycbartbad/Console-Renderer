@@ -603,6 +603,8 @@ class Layer2D {
     void set_cell(int x, int y, char ch, Vec3 fg = Vec3(255, 255, 255), Vec3 bg = Vec3(0, 0, 0));
     void fill_rect(float nx, float ny, float nw, float nh, Vec3 bg);
     void draw_border(float nx, float ny, float nw, float nh, Vec3 color = Vec3(200, 200, 200));
+    // Load 5×5 bitmap from TTF (Windows GDI), returns false on failure
+    static bool load_font_5x5(const char* ttf_path);
     void draw_text(float nx,
                    float ny,
                    const std::string& text,
@@ -1776,11 +1778,93 @@ Layer2D::draw_border(float nx, float ny, float nw, float nh, Vec3 col) {
     set_cell(x + w - 1, y + h - 1, '\xD9', col, col);
 }
 
+// ── Runtime-loaded 5×5 font (from TTF via GDI) ────────────────
+static const uint8_t* g_font5x5 = nullptr;  // set by load_font_5x5()
+
+bool
+Layer2D::load_font_5x5(const char* path) {
+#ifdef _WIN32
+    // Read TTF file
+    FILE* fp = fopen(path, "rb");
+    if (!fp) return false;
+    fseek(fp, 0, SEEK_END);
+    long sz = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    std::vector<uint8_t> buf((size_t)sz);
+    if (fread(buf.data(), 1, (size_t)sz, fp) != (size_t)sz) { fclose(fp); return false; }
+    fclose(fp);
+
+    // Add font from memory
+    DWORD nFonts = 0;
+    HANDLE hFont = AddFontMemResourceEx(buf.data(), (DWORD)buf.size(), nullptr, &nFonts);
+    if (!hFont || nFonts == 0) return false;
+
+    // Create DC and render each glyph at 5×5
+    HDC hdc = CreateCompatibleDC(nullptr);
+    SetMapMode(hdc, MM_TEXT);
+    // 04B-03 at height=5 pixels (its native bitmap size)
+    HFONT hf = CreateFontA(5, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+                           ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                           DEFAULT_QUALITY, MONO_FONT, "04B-03");
+    if (!hf) { DeleteDC(hdc); RemoveFontMemResourceEx(hFont); return false; }
+    SelectObject(hdc, hf);
+
+    // Create a small bitmap for glyph extraction
+    BITMAPINFO bmi = {};
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = 8;
+    bmi.bmiHeader.biHeight = -8;  // top-down
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+    void* bits = nullptr;
+    HBITMAP hbm = CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, &bits, nullptr, 0);
+    SelectObject(hdc, hbm);
+    SetBkColor(hdc, RGB(0, 0, 0));
+    SetTextColor(hdc, RGB(255, 255, 255));
+
+    // Allocate 95*5 bytes for the font
+    static std::vector<uint8_t> font_data(95 * 5, 0);
+    for (int c = 32; c < 127; c++) {
+        // Clear bitmap
+        RECT rc = {0, 0, 8, 8};
+        FillRect(hdc, &rc, (HBRUSH)GetStockObject(BLACK_BRUSH));
+
+        // Draw the character
+        wchar_t wc = (wchar_t)c;
+        DrawTextW(hdc, &wc, 1, &rc, DT_CENTER | DT_VCENTER | DT_NOCLIP);
+
+        // Read back pixels
+        GdiFlush();
+        uint32_t* px = (uint32_t*)bits;
+        for (int row = 0; row < 5; row++) {
+            uint8_t byte = 0;
+            for (int col = 0; col < 5; col++) {
+                // Check pixel at (col, row) – if white (non-zero) set bit
+                uint32_t p = px[row * 8 + col];
+                if ((p & 0xFF) > 128)  // any channel above threshold
+                    byte |= (0x80 >> col);
+            }
+            font_data[(c - 32) * 5 + row] = byte;
+        }
+    }
+
+    DeleteObject(hbm);
+    DeleteDC(hdc);
+    RemoveFontMemResourceEx(hFont);
+    g_font5x5 = font_data.data();
+    return true;
+#else
+    (void)path;
+    return false;
+#endif
+}
+
 void
 Layer2D::draw_text(float nx, float ny, const std::string& text, Vec3 fg, Vec3 bg, float scale) {
     int ox = n2x(nx, m_width), oy = n2x(ny, m_height), ch = max(1, (int)(m_height * scale));
     int fh; const uint8_t* font;
-    if (ch <= 5) { fh = 5; font = s_font3x5; } else { fh = 8; font = s_font8x8; }
+    if (ch <= 5) { fh = 5; font = g_font5x5 ? g_font5x5 : s_font3x5; } else { fh = 8; font = s_font8x8; }
     float is = (float)fh / ch;
     int nc = ch;
     for (size_t ci = 0; ci < text.size(); ci++) {
@@ -1872,6 +1956,10 @@ hw_threads() {
 
 Renderer::Renderer() {
     Screen::init();
+    // Auto-load 5×5 TTF font if present next to the header
+    FILE* fp = fopen("include\\04B-03-1.ttf", "rb");
+    if (fp) { fclose(fp); Layer2D::load_font_5x5("include\\04B-03-1.ttf"); }
+    else { fp = fopen("04B-03-1.ttf", "rb"); if (fp) { fclose(fp); Layer2D::load_font_5x5("04B-03-1.ttf"); } }
     mesh_num = 0;
     light_num = 0;
 }
