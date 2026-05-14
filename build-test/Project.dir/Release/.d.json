@@ -1,7 +1,7 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "d:\\clion 2025.2.2\\project\\src\\main.cpp",
+        "Source": "d:\\clion 2025.2.2\\project\\src\\render.cpp",
         "ProvidedModule": "",
         "Includes": [
             "d:\\clion 2025.2.2\\project\\include\\render.h",

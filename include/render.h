@@ -41,7 +41,7 @@ public:
 
 private:
     void prepare_frame();
-    void composite_frame(double frame_time_ms);
+    void composite_frame();
     void render_frame();
     void render_tile(const Tile& tile, TileScreen& ts);
     void worker_loop(int thread_id);
