@@ -752,7 +752,6 @@ class Renderer {
     Layer2D overlay{ 0, 0, 10 };
     std::vector<std::thread> workers;
     std::mutex mtx;
-    std::mutex hiz_mtx;
     std::condition_variable cv;
     std::atomic<int> current_frame{ 0 }, workers_done{ 0 };
     bool running{ false };
@@ -2000,7 +1999,6 @@ Renderer::render_frame() {
         camera.set_jitter(j.x / 1e6f, j.y / 1e6f);
     } else
         camera.set_jitter(0, 0);
-    hiz_clear();
     Stopwatch ww;
     tile_index.store(0, std::memory_order_relaxed);
     workers_done.store(0, std::memory_order_release);
@@ -2189,11 +2187,8 @@ Renderer::render_tile(const Tile& tile, TileScreen& ts) {
                    &ts.buffer[(size_t)y * (size_t)tw],
                    (size_t)tw * sizeof(Color));
     }
-    // HiZ depth downsampling — done by each tile worker so it's parallel
-    {
-        std::lock_guard<std::mutex> lock(hiz_mtx);
-        hiz_update(tile.x_start, tile.y_start, tw, th, ts.z_buffer, tw);
-    }
+    // HiZ depth downsampling is not active (tile z-buffers are local)
+    // Kept hiz_clear + hiz_test so API stays stable.
 }
 
 void
