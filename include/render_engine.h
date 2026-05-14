@@ -963,11 +963,6 @@ Screen::draw() {
     if (prev_buffer.size() != pc) {
         prev_buffer.assign(pc, 0);
         output_buf = "\033[3J\033[H";
-        if (show_fps) {
-            output_buf += "\033[mFPS:";
-            append_uint(output_buf, fps);
-            output_buf += ' ';
-        }
         for (int y = 0; y < h; y++) {
             int x = 0;
             while (x < w) {
@@ -995,11 +990,6 @@ Screen::draw() {
         return;
     }
     output_buf = "\033[H";
-    if (show_fps) {
-        output_buf += "\033[mFPS:";
-        append_uint(output_buf, fps);
-        output_buf += ' ';
-    }
     for (int y = 0; y < h; y++) {
         bool dirty = false;
         int x = 0;
@@ -2126,7 +2116,8 @@ Renderer::composite_layers() {
     if (overlay.width() != screen.width || overlay.height() != screen.height)
         overlay = Layer2D(screen.width, screen.height, 10);
     overlay.clear();
-    overlay.draw_text(.01f, .01f, Screen::get_fps_display(), Vec3(200, 200, 200), Vec3(0, 0, 0), .025f);
+    if (screen.show_fps)
+        overlay.draw_text(.01f, .01f, Screen::get_fps_display(), Vec3(200, 200, 200), Vec3(0, 0, 0), .025f);
     overlay.composite_to(screen.buffer, screen.width, screen.height);
 }
 
