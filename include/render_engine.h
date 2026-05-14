@@ -1791,7 +1791,7 @@ Layer2D::draw_text(float nx, float ny, const std::string& text, Vec3 fg, Vec3 bg
     int ox = n2x(nx, m_width), oy = n2x(ny, m_height), ch = max(1, (int)(m_height * scale));
     // Select font mip level based on rendered character height
     int fh; const uint8_t* font;
-    if (ch <= 3) { fh = 5; font = s_font3x5; } else { fh = 8; font = s_font8x8; }
+    if (ch <= 2) { fh = 5; font = s_font3x5; } else { fh = 8; font = s_font8x8; }
     float is = (float)fh / ch;
     int nc = ch;
     for (size_t ci = 0; ci < text.size(); ci++) {
