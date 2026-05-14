@@ -272,16 +272,18 @@ void Renderer::prepare_frame() {
 }
 
 void Renderer::composite_layers() {
-    // Resize overlay when console dimensions change
     if (overlay.width() != screen.width || overlay.height() != screen.height) {
         overlay = Layer2D(screen.width, screen.height, 10);
     }
-    overlay.clear();  // transparent by default
+    overlay.clear();
 
-    // Future: draw TUI / HUD widgets here
-    // overlay.draw_text(8, 8, "FPS: " + std::to_string(screen.fps), Vec3(0,255,0), Vec3(0,0,0), 2);
+    // FPS overlay (top-right corner, green text)
+    int scale = std::max(1, screen.width / 160);
+    int fps = Screen::get_fps();
+    std::string fps_text = "FPS: " + std::to_string(fps);
+    overlay.draw_text(screen.width - (int)fps_text.size() * 8 * scale - 8, 8,
+                      fps_text, Vec3(0, 255, 0), Vec3(0, 0, 0), scale);
 
-    // Composite onto the 3D scene buffer
     overlay.composite_to(screen.buffer, screen.width, screen.height);
 }
 

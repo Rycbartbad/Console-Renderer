@@ -48,6 +48,7 @@ public:
     void clear();
     void draw();
     static void calculate_fps();
+    static int get_fps() { return fps; }
     void show() const;
     void apply_ssaa();
     void apply_fxaa();
