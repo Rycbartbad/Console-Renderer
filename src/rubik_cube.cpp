@@ -14,32 +14,70 @@ RubikCube::RubikCube(const float length) {
 Mesh RubikCube::gen_block(const Vec4& pos, const float len) {
     constexpr Material material = Material{ 0.4f, 0.8f, 0.3f };
     const Vec3 color[6] = {
-        Vec3(255,0,0),    // 红
-        Vec3(0,255,0),    // 绿
-        Vec3(255,88,0),   // 橙
-        Vec3(0,0,255),    // 蓝
-        Vec3(255,255,0),  // 黄
-        Vec3(255,255,255),// 白
+        Vec3(255,0,0),    // 红 — back  (z-)
+        Vec3(0,255,0),    // 绿 — right (x+)
+        Vec3(255,88,0),   // 橙 — front (z+)
+        Vec3(0,0,255),    // 蓝 — left  (x-)
+        Vec3(255,255,0),  // 黄 — top   (y+)
+        Vec3(255,255,255),// 白 — bot   (y-)
     };
-    
-    std::vector<Vec3> colors = {6, Vec3(200,200,200)}; // 默认灰色
-    
-    if (pos.x == -1)
-        colors[3] = color[3]; // 左面蓝色
-    else if (pos.x == 1)
-        colors[1] = color[1]; // 右面绿色
-        
-    if (pos.y == -1)
-        colors[5] = color[5]; // 下面白色
-    else if (pos.y == 1)
-        colors[4] = color[4]; // 上面黄色
-        
-    if (pos.z == -1)
-        colors[0] = color[0]; // 后面红色
-    else if (pos.z == 1)
-        colors[2] = color[2]; // 前面橙色
-        
-    return Mesh::Cube(pos * len * 1.04f, len / 2, colors, material);
+
+    const Vec4 center = pos * len * 1.04f;
+    const float r = len / 2;
+
+    // 8 顶点标准立方体
+    const std::vector<Vec4> vertices = {
+        {center.x - r, center.y - r, center.z - r, 1},
+        {center.x + r, center.y - r, center.z - r, 1},
+        {center.x + r, center.y + r, center.z - r, 1},
+        {center.x - r, center.y + r, center.z - r, 1},
+        {center.x - r, center.y - r, center.z + r, 1},
+        {center.x + r, center.y - r, center.z + r, 1},
+        {center.x + r, center.y + r, center.z + r, 1},
+        {center.x - r, center.y + r, center.z + r, 1},
+    };
+
+    // 6 个面的索引（每个面 2 个三角形 = 6 个索引）
+    static const int face_idx[6][6] = {
+        {0, 1, 2, 2, 3, 0},  // 0: back  (z-)
+        {1, 5, 6, 6, 2, 1},  // 1: right (x+)
+        {5, 4, 7, 7, 6, 5},  // 2: front (z+)
+        {4, 0, 3, 3, 7, 4},  // 3: left  (x-)
+        {3, 2, 6, 6, 7, 3},  // 4: top   (y+)
+        {1, 0, 4, 4, 5, 1},  // 5: bot   (y-)
+    };
+
+    // 面可见性：邻接面存在时隐藏（在 3x3x3 中只有最外层面可见）
+    const bool visible[6] = {
+        pos.z == -1,  // back
+        pos.x == 1,   // right
+        pos.z == 1,   // front
+        pos.x == -1,  // left
+        pos.y == 1,   // top
+        pos.y == -1,  // bot
+    };
+
+    // 每个面的颜色贴图（外表面用彩色，内部隐藏面实际不会被渲染但留灰）
+    const Vec3 face_colors[6] = {
+        pos.z == -1 ? color[0] : Vec3(200,200,200),
+        pos.x == 1  ? color[1] : Vec3(200,200,200),
+        pos.z == 1  ? color[2] : Vec3(200,200,200),
+        pos.x == -1 ? color[3] : Vec3(200,200,200),
+        pos.y == 1  ? color[4] : Vec3(200,200,200),
+        pos.y == -1 ? color[5] : Vec3(200,200,200),
+    };
+
+    // 收集所有 6 个面的索引和颜色（外部面彩色，内部面灰色——旋转时内部面也会暴露）
+    std::vector<int> indices;
+    std::vector<Vec3> mesh_colors;
+    for (int f = 0; f < 6; f++) {
+        for (int j = 0; j < 6; j++) {
+            indices.push_back(face_idx[f][j]);
+            mesh_colors.push_back(face_colors[f]);
+        }
+    }
+
+    return { center, vertices, indices, mesh_colors, material };
 }
 
 void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
@@ -48,88 +86,76 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
         Vec4(0, 1, 0, 0),
         Vec4(0, 0, 1, 0)
     };
-    
-    if (platform::kbhit()) {
-        bool rotate = false;
+
+    // ── Non-blocking face-rotation animation state ────────────────────────
+    static bool animating = false;
+    static Vec4 anim_axis;
+    static std::vector<int> anim_blk;
+    static int anim_frames = 0;
+    static constexpr int TOTAL_FRAMES = 9;
+
+    // Start a new rotation from keyboard input (only if not already animating)
+    if (!animating && platform::kbhit()) {
         Vec4 axis;
         std::vector<int> blk;
-        
+        bool rotate = false;
+
         switch (platform::getch()) {
             case 'f': // 前面
-                axis = axis_base[2] * (-1);
-                for (int i = 0; i < 27; ++i) {
-                    if (blocks[i].z == -1) {
-                        blk.emplace_back(i);
-                        Transform::rotate(blocks[i], Vec4(0, 0, -1, 0), pi/2);
-                    }
-                }
-                rotate = true;
+                axis = Vec4(0, 0, -1, 0);
+                for (int i = 0; i < 27; ++i)
+                    if (blocks[i].z == -1) { blk.push_back(i); rotate = true; }
                 break;
             case 'b': // 后面
-                axis = axis_base[2];
-                for (int i = 0; i < 27; ++i) {
-                    if (blocks[i].z == 1) {
-                        blk.emplace_back(i);
-                        Transform::rotate(blocks[i], Vec4(0, 0, 1, 0), pi/2);
-                    }
-                }
-                rotate = true;
+                axis = Vec4(0, 0, 1, 0);
+                for (int i = 0; i < 27; ++i)
+                    if (blocks[i].z == 1) { blk.push_back(i); rotate = true; }
                 break;
             case 'l': // 左面
-                axis = axis_base[0] * (-1);
-                for (int i = 0; i < 27; ++i) {
-                    if (blocks[i].x == -1) {
-                        blk.emplace_back(i);
-                        Transform::rotate(blocks[i], Vec4(-1, 0, 0, 0), pi/2);
-                    }
-                }
-                rotate = true;
+                axis = Vec4(-1, 0, 0, 0);
+                for (int i = 0; i < 27; ++i)
+                    if (blocks[i].x == -1) { blk.push_back(i); rotate = true; }
                 break;
             case 'r': // 右面
-                axis = axis_base[0];
-                for (int i = 0; i < 27; ++i) {
-                    if (blocks[i].x == 1) {
-                        blk.emplace_back(i);
-                        Transform::rotate(blocks[i], Vec4(1, 0, 0, 0), pi/2);
-                    }
-                }
-                rotate = true;
+                axis = Vec4(1, 0, 0, 0);
+                for (int i = 0; i < 27; ++i)
+                    if (blocks[i].x == 1) { blk.push_back(i); rotate = true; }
                 break;
             case 'd': // 下面
-                axis = axis_base[1] * (-1);
-                for (int i = 0; i < 27; ++i) {
-                    if (blocks[i].y == -1) {
-                        blk.emplace_back(i);
-                        Transform::rotate(blocks[i], Vec4(0, -1, 0, 0), pi/2);
-                    }
-                }
-                rotate = true;
+                axis = Vec4(0, -1, 0, 0);
+                for (int i = 0; i < 27; ++i)
+                    if (blocks[i].y == -1) { blk.push_back(i); rotate = true; }
                 break;
             case 'u': // 上面
-                axis = axis_base[1];
-                for (int i = 0; i < 27; ++i) {
-                    if (blocks[i].y == 1) {
-                        blk.emplace_back(i);
-                        Transform::rotate(blocks[i], Vec4(0, 1, 0, 0), pi/2);
-                    }
-                }
-                rotate = true;
+                axis = Vec4(0, 1, 0, 0);
+                for (int i = 0; i < 27; ++i)
+                    if (blocks[i].y == 1) { blk.push_back(i); rotate = true; }
                 break;
             default:
                 break;
         }
-        
+
         if (rotate) {
-            constexpr int times = 1;
-            for (int n = 0; n < 9; ++n) {
-                for (const auto& i : blk) {
-                    Transform::rotate(*meshes[i], axis, pi/18);
-                }
-                platform::sleep_ms(times);
-            }
+            // Update logical positions immediately (90° rotation)
+            for (int i : blk)
+                Transform::rotate(blocks[i], axis, pi/2);
+            // Start visual animation (spread across TOTAL_FRAMES frames)
+            animating = true;
+            anim_axis = axis;
+            anim_blk = std::move(blk);
+            anim_frames = TOTAL_FRAMES;
         }
     }
-    
+
+    // Apply one animation step per frame (non-blocking)
+    if (animating) {
+        for (const int i : anim_blk)
+            Transform::rotate(*meshes[i], anim_axis, pi / (TOTAL_FRAMES + 1));
+        if (--anim_frames <= 0)
+            animating = false;
+    }
+
+    // ── Mouse-controlled scene rotation ───────────────────────────────────
     static int p1x = 0, p1y = 0, p2x = 0, p2y = 0;
     platform::get_cursor_pos(p1x, p1y);
     const float angel_x = (p2x - p1x) * pi / 360.0f;
@@ -141,9 +167,9 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
             Transform::rotate(axis, Vec4(0, 1, 0, 0), angel_x);
             Transform::rotate(axis, Vec4(1, 0, 0, 0), angel_y);
         }
-        for (auto& mesh : meshes) {
+        for (auto& mesh : meshes)
             Transform::rotate(*mesh, Vec4(0, 1, 0, 0), angel_x);
+        for (auto& mesh : meshes)
             Transform::rotate(*mesh, Vec4(1, 0, 0, 0), angel_y);
-        }
     }
 }
