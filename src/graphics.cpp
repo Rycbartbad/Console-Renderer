@@ -99,11 +99,12 @@ void Line::fast_draw(Screen& screen, const Vec2& a, const Vec2& b, const Vec3& c
             const double sum_abc = ad + bd + gd;
             const float inv_denom = static_cast<float>(1.0 / (ad * iv0z + bd * iv1z + gd * iv2z));
             const float depth = static_cast<float>(sum_abc) * inv_denom;
+            constexpr float DEPTH_BIAS = 2e-7f;  // prevents z-fighting on shared edges
 
             // Inlined depth test + pixel write (no bounds check — scissor already guarantees in-range)
             const size_t idx = static_cast<size_t>(point.x - tile_ox)
                              + static_cast<size_t>(point.y - tile_oy) * static_cast<size_t>(tile_w);
-            if (screen.z_buffer[idx] == 0 || depth < screen.z_buffer[idx]) {
+            if (screen.z_buffer[idx] == 0 || depth + DEPTH_BIAS < screen.z_buffer[idx]) {
                 screen.z_buffer[idx] = depth;
                 // Perspective-correct 3D position
                 const Vec4 point_3 = (v[0] * static_cast<float>(ad * iv0z) +
