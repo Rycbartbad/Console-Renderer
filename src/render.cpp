@@ -194,7 +194,7 @@ void Renderer::render_frame() {
             render_tile(tiles[ti], ts_main);
     }
     while (workers_done.load(std::memory_order_acquire) < num_threads)
-        platform::yield_thread();
+        std::this_thread::sleep_for(std::chrono::microseconds(50));
     t_worker_wait += ww_sw.elapsed_ms();
 
     Stopwatch cmp_sw;
