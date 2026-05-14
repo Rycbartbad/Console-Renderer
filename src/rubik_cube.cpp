@@ -152,12 +152,12 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
     // drags during the animation stay in sync with the scene orientation.
     if (animating) {
         static const Vec4 face_axis[6] = {
-            Vec4(0, 0, -1, 0),  // 0: back   axis_base[2] * -1
-            Vec4(1, 0, 0, 0),   // 1: right  axis_base[0]
-            Vec4(0, 0, 1, 0),   // 2: front  axis_base[2]
-            Vec4(-1, 0, 0, 0),  // 3: left   axis_base[0] * -1
-            Vec4(0, 1, 0, 0),   // 4: top    axis_base[1]
-            Vec4(0, -1, 0, 0),  // 5: bottom axis_base[1] * -1
+            Vec4(0, 0, -1, 0),  // 0: 'f' — z==-1,  axis_base[2] * -1
+            Vec4(0, 0, 1, 0),   // 1: 'b' — z== 1,  axis_base[2]
+            Vec4(-1, 0, 0, 0),  // 2: 'l' — x==-1,  axis_base[0] * -1
+            Vec4(1, 0, 0, 0),   // 3: 'r' — x== 1,  axis_base[0]
+            Vec4(0, -1, 0, 0),  // 4: 'd' — y==-1,  axis_base[1] * -1
+            Vec4(0, 1, 0, 0),   // 5: 'u' — y== 1,  axis_base[1]
         };
         // Transform world-space face axis → scene-space via axis_base rotation matrix
         const Vec4& b = face_axis[anim_face];
