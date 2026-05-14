@@ -1,4 +1,5 @@
 #include "mesh.h"
+#include <cmath>
 
 std::vector<Vec3> auto_color(const std::vector<Vec3>& colors, const int& size) {
     std::vector<Vec3> color;
@@ -27,7 +28,8 @@ Mesh Mesh::Cube(const Vec4& center, const float& r, const std::vector<Vec3>& col
         4, 0, 3, 3, 7, 4, 3, 2, 6, 6, 7, 3, 1, 0, 4, 4, 5, 1 
     };
     
-    return { center, vertices, indices, auto_color(colors, indices.size()), material };
+    constexpr float SQRT3 = 1.7320508f;
+    return { center, vertices, indices, auto_color(colors, indices.size()), material, SQRT3 * r };
 }
 
 Mesh Mesh::Plane(const Vec4& center, const float& r, const std::vector<Vec3>& colors, const Material& material ) {
@@ -36,5 +38,6 @@ Mesh Mesh::Plane(const Vec4& center, const float& r, const std::vector<Vec3>& co
         {center.x + r, center.y, center.z + r, 1}, {center.x - r, center.y, center.z + r, 1}
     };
     const std::vector<int> indices = { 0, 1, 2, 2, 3, 0 };
-    return { center, vertices, indices, auto_color(colors, indices.size()), material };
+    constexpr float SQRT2 = 1.4142136f;
+    return { center, vertices, indices, auto_color(colors, indices.size()), material, SQRT2 * r };
 }

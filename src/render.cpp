@@ -43,6 +43,8 @@ void Renderer::render_frame() {
 
     Stopwatch p1_sw;
     prepare_frame();  // frame_meshes now in camera space
+    // View-frustum cull: mark invisible meshes (workers skip them)
+    frustum_cull();
     // Pre-project all vertices once per frame (avoid per-tile re-projection)
     camera.pre_project_verts(frame_meshes, frame_vert_proj);
     t_prepare += p1_sw.elapsed_ms();
@@ -61,7 +63,9 @@ void Renderer::render_frame() {
         // After prepare_frame(), vertices are in camera space.
         // screen_x = src.x * h / src.z + w/2
         // screen_y = -src.y * h / src.z + h/2
-        for (const auto& mesh : frame_meshes) {
+        for (int mi = 0; mi < static_cast<int>(frame_meshes.size()); mi++) {
+            if (mi < static_cast<int>(mesh_visible.size()) && !mesh_visible[mi]) continue;
+            const auto& mesh = frame_meshes[mi];
             for (size_t ti = 0; ti + 2 < mesh.indices.size(); ti += 3) {
                 float sx_sum = 0, sy_sum = 0;
                 float min_sx = 1e9f, max_sx = -1e9f, min_sy = 1e9f, max_sy = -1e9f;
@@ -234,6 +238,44 @@ void Renderer::render_frame() {
     }
 }
 
+void Renderer::frustum_cull() {
+    const size_t n = frame_meshes.size();
+    mesh_visible.resize(n, true);
+    if (n == 0) return;
+
+    // Camera frustum in camera space:
+    //   near z = n_near (1), far z = n_far (100)
+    //   x = ± aspect * z / (2 * n_near)
+    //   y = ± z / (2 * n_near)   (height = 1)
+    const float cam_n = 1.0f;
+    const float cam_f = 100.0f;
+    const float aspect = camera.width;   // screen.width / screen.height
+    const float inv_2n = 1.0f / (2.0f * cam_n);
+
+    for (size_t i = 0; i < n; i++) {
+        const auto& mesh = frame_meshes[i];
+        const float cx = mesh.center.x;
+        const float cy = mesh.center.y;
+        const float cz = mesh.center.z;
+        const float r = mesh.bounding_radius;
+        if (r <= 0) continue;  // no bounding volume, always visible
+
+        // Reject behind near plane
+        if (cz + r < cam_n) { mesh_visible[i] = false; continue; }
+        // Reject beyond far plane
+        if (cz - r > cam_f) { mesh_visible[i] = false; continue; }
+
+        // Reject outside horizontal frustum (conservative: test at closest z)
+        float z_test = std::max(cz - r, cam_n);  // sphere's front toward camera
+        float half_w = aspect * z_test * inv_2n;
+        if (cx - r > half_w || cx + r < -half_w) { mesh_visible[i] = false; continue; }
+
+        // Reject outside vertical frustum
+        float half_h = z_test * inv_2n;
+        if (cy - r > half_h || cy + r < -half_h) { mesh_visible[i] = false; continue; }
+    }
+}
+
 void Renderer::prepare_frame() {
     // Transform meshes to camera space (in-place on frame copies)
     // Avoid reallocation when mesh count is stable
@@ -315,9 +357,13 @@ void Renderer::render_tile(const Tile& tile, TileScreen& ts) {
         Tile clip2{ tile.x_start * 2, tile.x_end * 2,
                     tile.y_start * 2, tile.y_end * 2 };
         const Vec4* proj_ptr = frame_vert_proj.data();
-        for (const auto& mesh : frame_meshes) {
-            camera.load(ts, mesh, frame_lights, &clip2, proj_ptr);
-            proj_ptr += mesh.vertices.size();
+        for (int mi = 0; mi < static_cast<int>(frame_meshes.size()); mi++) {
+            if (mi < static_cast<int>(mesh_visible.size()) && !mesh_visible[mi]) {
+                proj_ptr += frame_meshes[mi].vertices.size();
+                continue;
+            }
+            camera.load(ts, frame_meshes[mi], frame_lights, &clip2, proj_ptr);
+            proj_ptr += frame_meshes[mi].vertices.size();
         }
 
         for (int y = 0; y < th; y++)
@@ -338,9 +384,13 @@ void Renderer::render_tile(const Tile& tile, TileScreen& ts) {
         ts.resize_if_needed(screen.width, screen.height,
                             tile.x_start, tile.y_start, tw, th);
         const Vec4* proj_ptr = frame_vert_proj.data();
-        for (const auto& mesh : frame_meshes) {
-            camera.load(ts, mesh, frame_lights, &tile, proj_ptr);
-            proj_ptr += mesh.vertices.size();
+        for (int mi = 0; mi < static_cast<int>(frame_meshes.size()); mi++) {
+            if (mi < static_cast<int>(mesh_visible.size()) && !mesh_visible[mi]) {
+                proj_ptr += frame_meshes[mi].vertices.size();
+                continue;
+            }
+            camera.load(ts, frame_meshes[mi], frame_lights, &tile, proj_ptr);
+            proj_ptr += frame_meshes[mi].vertices.size();
         }
 
         const size_t row_width = static_cast<size_t>(screen.width);

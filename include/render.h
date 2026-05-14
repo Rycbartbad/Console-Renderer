@@ -60,6 +60,17 @@ private:
     // Per-frame vertex projection cache (avoids re-projection per tile per mesh)
     std::vector<Vec4> frame_vert_proj;
 
+    // Frustum culling: mesh visibility flags (set per frame, consumed by workers)
+    std::vector<bool> mesh_visible;
+    void frustum_cull();
+
+    // Hi-Z occlusion buffer (1/8 resolution, for occlusion culling per tile)
+    std::vector<float> hiz_buffer;
+    int hiz_w = 0, hiz_h = 0;
+    void hiz_clear();
+    bool hiz_test(float cx, float cy, float cz, float radius) const;
+    void hiz_update(int x, int y, int w, int h, const std::vector<float>& z_buf, int zw);
+
     // 2D overlay layer (composited on top of 3D scene)
     Layer2D overlay{0, 0, 10};
     void composite_layers();
