@@ -277,11 +277,12 @@ void Renderer::composite_layers() {
     }
     overlay.clear();
 
-    // FPS overlay (normalized position: 90% from left, independent of console size)
+    // FPS overlay (normalized position + font size)
     int fps = Screen::get_fps();
     std::string fps_text = "FPS: " + std::to_string(fps);
-    int tx = static_cast<int>(screen.width * 0.9f);
-    overlay.draw_text(tx, 2, fps_text, Vec3(0, 255, 0), Vec3(0, 0, 0), 1);
+    int font_scale = std::max(1, screen.width / 220);
+    int tx = static_cast<int>(screen.width * 0.9f) - (int)fps_text.size() * 8 * font_scale;
+    overlay.draw_text(tx, 4, fps_text, Vec3(0, 255, 0), Vec3(0, 0, 0), font_scale);
 
     overlay.composite_to(screen.buffer, screen.width, screen.height);
 }
