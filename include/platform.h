@@ -24,7 +24,6 @@ struct Stopwatch {
 
 #include <windows.h>
 #include <conio.h>
-#include <memory>
 
 namespace platform {
 
@@ -85,30 +84,6 @@ inline bool key_down(int vk) {
 
 inline void sleep_ms(int ms) {
     Sleep(static_cast<DWORD>(ms));
-}
-
-// Returns the number of physical cores (excludes hyperthreads, E-cores).
-// Worker threads = physical cores avoids contention from SMT / hybrid CPU architectures.
-inline int ideal_thread_count() {
-    DWORD len = 0;
-    GetLogicalProcessorInformation(nullptr, &len);
-    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER || len == 0)
-        return std::thread::hardware_concurrency() / 2;
-    auto buf = std::make_unique<SYSTEM_LOGICAL_PROCESSOR_INFORMATION[]>(len / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
-    if (!GetLogicalProcessorInformation(buf.get(), &len))
-        return std::thread::hardware_concurrency() / 2;
-    int cores = 0;
-    for (DWORD i = 0; i < len / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); i++) {
-        if (buf[i].Relationship == RelationProcessorCore) cores++;
-    }
-    return std::max(1, cores);
-}
-
-// Pin calling thread to a specific CPU core (0-based).  Helps prevent slow
-// E-cores from becoming the bottleneck in hybrid architectures.
-inline void set_thread_affinity(int core_index) {
-    HANDLE hThread = GetCurrentThread();
-    SetThreadAffinityMask(hThread, static_cast<DWORD_PTR>(1) << core_index);
 }
 
 } // namespace platform
@@ -241,18 +216,6 @@ inline bool key_down(int vk) {
 inline void sleep_ms(int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
-
-// Physical-core heuristic: assume SMT → divide by 2.
-// On Linux /proc/cpuinfo could give exact count, but this is good enough.
-inline int ideal_thread_count() {
-    int logical = static_cast<int>(std::thread::hardware_concurrency());
-    return std::max(1, logical / 2);
-}
-
-// No-op on POSIX — thread affinity requires pthread_setaffinity_np (Linux) or
-// thread_policy_set (macOS).  The core-count heuristic already avoids E-core
-// bottlenecks on hybrid CPUs because ideal_thread_count returns physical cores.
-inline void set_thread_affinity(int) {}
 
 } // namespace platform
 
