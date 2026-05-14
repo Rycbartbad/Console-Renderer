@@ -277,12 +277,11 @@ void Renderer::composite_layers() {
     }
     overlay.clear();
 
-    // FPS overlay (top-right corner, green text)
-    int scale = std::max(1, screen.width / 160);
+    // FPS overlay (fixed position and scale, independent of console resolution)
     int fps = Screen::get_fps();
     std::string fps_text = "FPS: " + std::to_string(fps);
-    overlay.draw_text(screen.width - (int)fps_text.size() * 8 * scale - 8, 8,
-                      fps_text, Vec3(0, 255, 0), Vec3(0, 0, 0), scale);
+    overlay.draw_text(screen.width - 120, 2,
+                      fps_text, Vec3(0, 255, 0), Vec3(0, 0, 0), 1);
 
     overlay.composite_to(screen.buffer, screen.width, screen.height);
 }
