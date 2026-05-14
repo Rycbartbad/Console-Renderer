@@ -106,7 +106,7 @@ Layer2D::Layer2D(int width, int height, int z_order)
 
 void Layer2D::clear(Vec3 bg) {
     Cell empty; empty.bg = bg; empty.fg = Vec3(255,255,255);
-    empty.ch = ' '; empty.transparent = false; empty.has_text = false;
+    empty.ch = ' '; empty.transparent = true; empty.has_text = false;
     std::fill(m_cells.begin(), m_cells.end(), empty);
 }
 
@@ -121,6 +121,7 @@ void Layer2D::fill_rect(int x, int y, int w, int h, Vec3 bg) {
     int x1 = std::min(m_width, x + w), y1 = std::min(m_height, y + h);
     for (int row = y0; row < y1; row++)
         for (int col = x0; col < x1; col++)
+            m_cells[col + row * m_width].fg = bg,
             m_cells[col + row * m_width].bg = bg,
             m_cells[col + row * m_width].transparent = false;
 }
@@ -177,6 +178,6 @@ void Layer2D::composite_to(std::vector<Vec3>& target, int target_w, int target_h
     for (int y = 0; y < h; y++)
         for (int x = 0; x < w; x++) {
             const auto& c = m_cells[x + y * m_width];
-            if (!c.transparent) target[x + y * target_w] = c.bg;
+            if (!c.transparent) target[x + y * target_w] = c.fg;
         }
 }
