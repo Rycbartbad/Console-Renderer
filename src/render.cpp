@@ -185,14 +185,8 @@ void Renderer::render_frame() {
     current_frame.fetch_add(1, std::memory_order_acq_rel);
     cv.notify_all();
 
-    // Main thread processes tiles, then waits with backoff for remaining workers.
-    // (processing tiles in the main thread adds ~one core of throughput)
-    {
-        TileScreen ts_main(0, 0, 0, 0, 0, 0);
-        int ti;
-        while ((ti = tile_index.fetch_add(1, std::memory_order_relaxed)) < static_cast<int>(tiles.size()))
-            render_tile(tiles[ti], ts_main);
-    }
+    // Wait efficiently — Sleep(0) yields the remainder of the timeslice
+    // without the 15ms trap of sleep_for() or the busy-spin of yield().
     while (workers_done.load(std::memory_order_acquire) < num_threads)
         platform::yield_thread();
     t_worker_wait += ww_sw.elapsed_ms();
@@ -337,9 +331,6 @@ void Renderer::render_tile(const Tile& tile, TileScreen& ts) {
 }
 
 void Renderer::worker_loop(const int thread_id) {
-    // Pin this worker to core thread_id so slow E-cores don't bottleneck the frame
-    platform::set_thread_affinity(thread_id);
-
     int my_frame = 0;
 
     while (true) {
