@@ -185,16 +185,13 @@ void Renderer::render_frame() {
     current_frame.fetch_add(1, std::memory_order_acq_rel);
     cv.notify_all();
 
-    // Main thread also processes tiles (instead of busy-waiting, improving CPU utilization)
+    // Efficiently wait for all workers (no busy-wait — frees a core for worker threads)
     {
-        TileScreen ts_main(0, 0, 0, 0, 0, 0);
-        int ti;
-        while ((ti = tile_index.fetch_add(1, std::memory_order_relaxed)) < static_cast<int>(tiles.size()))
-            render_tile(tiles[ti], ts_main);
+        std::unique_lock lock(mtx);
+        cv_main.wait(lock, [&] {
+            return workers_done.load(std::memory_order_acquire) >= num_threads;
+        });
     }
-    // Wait for remaining workers (brief — main thread already processed a share)
-    while (workers_done.load(std::memory_order_acquire) < num_threads)
-        std::this_thread::yield();
     t_worker_wait += ww_sw.elapsed_ms();
 
     Stopwatch cmp_sw;
@@ -337,6 +334,9 @@ void Renderer::render_tile(const Tile& tile, TileScreen& ts) {
 }
 
 void Renderer::worker_loop(const int thread_id) {
+    // Pin this worker to core thread_id so slow E-cores don't bottleneck the frame
+    platform::set_thread_affinity(thread_id);
+
     int my_frame = 0;
 
     while (true) {
@@ -357,6 +357,7 @@ void Renderer::worker_loop(const int thread_id) {
         // Signal completion
         my_frame = current_frame.load(std::memory_order_acquire);
         workers_done.fetch_add(1, std::memory_order_release);
+        cv_main.notify_one();
     }
 }
 
@@ -375,7 +376,7 @@ void Renderer::set_camera_pos(const Vec4& pos) {
 
 // Count available hardware threads (cross-platform)
 static int hardware_thread_count() {
-    return std::max(1, static_cast<int>(std::thread::hardware_concurrency()));
+    return platform::ideal_thread_count();
 }
 
 void Renderer::launch() {
