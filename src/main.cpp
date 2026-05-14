@@ -37,7 +37,7 @@
     };
 
     Renderer r;
-    r.set_aa(SSAA);
+    r.set_aa(TAA);
     ID mesh_id = r.add(meshes);
     ID light_id = r.add(lights);
     r.set_camera_pos(Vec4(0, 20, -40, 1));

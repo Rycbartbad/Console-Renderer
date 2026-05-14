@@ -51,6 +51,18 @@ void Camera::load(Screen& screen, const Mesh& mesh, const std::vector<Light>& li
     const float sx = 0.5f * screen.width;
     const float sy = 0.5f * screen.height;
 
+    // Apply TAA jitter to projection (±0.5 pixel in screen space)
+    // This shifts both rendering position (cv) and attributes (bd) consistently.
+    if ((jitter_x != 0.0f || jitter_y != 0.0f) && vn > 0) {
+        const float jx = jitter_x * 2.0f / screen.width;
+        const float jy = jitter_y * 2.0f / screen.height;
+        for (int vi = 0; vi < vn; vi++)
+            if (vbuf[vi].w > 0.001f) {
+                vbuf[vi].x += jx * vbuf[vi].w;
+                vbuf[vi].y += jy * vbuf[vi].w;
+            }
+    }
+
     // Fast mesh-level tile culling: compute screen AABB from projected vertices
     if (clip_tile && vn > 0) {
         float min_sx = 1e9f, max_sx = -1e9f;
@@ -98,8 +110,6 @@ void Camera::load(Screen& screen, const Mesh& mesh, const std::vector<Light>& li
             bd[v] = cv[v];
             bd[v].x *= width / n / 2;
             bd[v].y /= n * -2;
-            bd[v].x += jitter_x * 2.0f / screen.width;
-            bd[v].y += jitter_y * 2.0f / screen.height;
             bd[v].z = bd[v].w;
             bd[v].w = 1;
         }
