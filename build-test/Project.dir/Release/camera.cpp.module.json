@@ -1,0 +1,13 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "Project.dir\\Release\\camera.obj",
+            "outputs": [
+                "Project.dir\\Release\\"
+            ],
+            "requires": []
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "Project.dir\\Release\\rubik_cube.obj",
+            "outputs": [
+                "Project.dir\\Release\\"
+            ],
+            "requires": []
+        }
+    ]
+}

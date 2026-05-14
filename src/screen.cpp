@@ -1,5 +1,6 @@
 #include "screen.h"
 #include <iostream>
+#include <cstdio>
 #include <windows.h>
 
 clock_t Screen::start_t = 0;
@@ -408,8 +409,6 @@ Vec2 Screen::halton_sequence(int index) {
 }
 
 void Screen::show() const {
-    // WriteConsole bypasses C/C++ stream layers entirely — avoids intermittent
-    // blocking seen with std::cout when the terminal buffer back-pressures.
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD written;
     const char pre[] = "\x1b[?2026h";
