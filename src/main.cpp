@@ -51,6 +51,7 @@
 
     while (true) {
         r.update();
+        r.controller();
         t += 0.02f;
         for (size_t i = 0; i < all_lights.size(); i++) {
             float a = t + i * 1.256f, r_ = 50 + i * 10.f, h = 20 + sin(t*0.5f+i)*15;
