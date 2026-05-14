@@ -173,25 +173,6 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
             animating = false;
     }
 
-        if (rotate) {
-            // Logical positions use WORLD axes so face detection stays correct
-            for (int i : blk)
-                Transform::rotate(blocks[i], waxis, pi/2);
-            animating = true;
-            anim_axis = axis;      // scene-relative for mesh animation
-            anim_blk = std::move(blk);
-            anim_frames = TOTAL_FRAMES;
-        }
-    }
-
-    // Apply one animation step per frame (non-blocking, pi/18 × 9 = 90°)
-    if (animating) {
-        for (const int i : anim_blk)
-            Transform::rotate(*meshes[i], anim_axis, pi / 18);
-        if (--anim_frames <= 0)
-            animating = false;
-    }
-
     // ── Mouse-controlled scene rotation ───────────────────────────────────
     static int p1x = 0, p1y = 0, p2x = 0, p2y = 0;
     platform::get_cursor_pos(p1x, p1y);
