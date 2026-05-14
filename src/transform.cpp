@@ -34,6 +34,7 @@ void Transform::rotate(Mesh& mesh, Vec4 axis, float angle) {
 void Transform::rotate(Vec4& dir, Vec4 axis, float angle) {
     axis.normalize();
     dir = dir * cos(angle) + axis.cross3(dir) * sin(angle) + axis * (axis * dir) * (1 - cos(angle));
+    dir.w = 0;  // direction vector, not a point
 }
 
 void Transform::rotate(Vec3& point, Vec4 axis, float angle) {
