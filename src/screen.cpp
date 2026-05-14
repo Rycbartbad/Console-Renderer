@@ -62,6 +62,21 @@ bool Screen::depth_test(const int x, const int y, const float z) const {
     return z_buffer[index] == 0 || z < z_buffer[index];
 }
 
+// Fast integer-to-string append for 0-999 (range covers all color values and coords).
+// Avoids std::to_string heap allocation in the hot draw path.
+static void append_uint(std::string& buf, int n) {
+    if (n >= 100) {
+        buf += static_cast<char>('0' + n / 100);
+        buf += static_cast<char>('0' + (n / 10) % 10);
+        buf += static_cast<char>('0' + n % 10);
+    } else if (n >= 10) {
+        buf += static_cast<char>('0' + n / 10);
+        buf += static_cast<char>('0' + n % 10);
+    } else {
+        buf += static_cast<char>('0' + n);
+    }
+}
+
 // Append spaces using REP CSI n b (repeat last char) when beneficial.
 // \x1b[ Nb  repeats the last graphic character N times — supported by
 // Windows Terminal, iTerm2, Kitty, xterm, etc.  Saves bandwidth for runs ≥ 3 pixels.
@@ -72,7 +87,7 @@ static void append_spans(std::string& buf, int count) {
     } else {
         buf += ' ';  // prime the repeat buffer with the space character
         buf += "\x1b[";
-        buf += std::to_string(count - 1);
+        append_uint(buf, count - 1);
         buf += 'b';
     }
 }
@@ -94,20 +109,28 @@ void Screen::draw() {
     if (prev_buffer.size() != pixel_count) {
         prev_buffer.assign(pixel_count, Vec3());
         output_buf = "\033[3J\033[H";
-        if (show_fps)
-            output_buf = "\033[3J\033[H\033[mFPS:" + std::to_string(fps) + " ";
+        if (show_fps) {
+            output_buf += "\033[mFPS:";
+            append_uint(output_buf, fps);
+            output_buf += ' ';
+        }
         for (int y = 0; y < h; y++) {
             int x = 0;
             while (x < w) {
                 const auto& c = buffer[x + y * w];
-                int r = std::min(c.x, 255), g = std::min(c.y, 255), b = std::min(c.z, 255);
                 int run = 1;
                 while (x + run < w) {
                     const auto& n = buffer[x + run + y * w];
-                    if (std::min(n.x, 255) != r || std::min(n.y, 255) != g || std::min(n.z, 255) != b) break;
+                    if (n.x != c.x || n.y != c.y || n.z != c.z) break;
                     run++;
                 }
-                output_buf += "\033[48;2;" + std::to_string(r) + ';' + std::to_string(g) + ';' + std::to_string(b) + "m";
+                output_buf += "\033[48;2;";
+                append_uint(output_buf, c.x > 255 ? 255 : c.x < 0 ? 0 : c.x);
+                output_buf += ';';
+                append_uint(output_buf, c.y > 255 ? 255 : c.y < 0 ? 0 : c.y);
+                output_buf += ';';
+                append_uint(output_buf, c.z > 255 ? 255 : c.z < 0 ? 0 : c.z);
+                output_buf += 'm';
                 append_spans(output_buf, run * 2);
                 x += run;
             }
@@ -119,8 +142,11 @@ void Screen::draw() {
 
     // ── Diff-based output: only emit ANSI codes for changed pixels ──
     output_buf = "\033[H";
-    if (show_fps)
-        output_buf = "\033[H\033[mFPS:" + std::to_string(fps) + " ";
+    if (show_fps) {
+        output_buf += "\033[mFPS:";
+        append_uint(output_buf, fps);
+        output_buf += ' ';
+    }
 
     for (int y = 0; y < h; y++) {
         bool row_dirty = false;
@@ -135,7 +161,9 @@ void Screen::draw() {
             }
             if (!row_dirty) {
                 row_dirty = true;
-                output_buf += "\033[" + std::to_string(y + 1) + ";1H";
+                output_buf += "\033[";
+                append_uint(output_buf, y + 1);
+                output_buf += ";1H";
             }
             // Run-length: consecutive pixels with the same color (changed or not)
             int run = 1;
@@ -144,9 +172,15 @@ void Screen::draw() {
                 if (nxt.x != cur.x || nxt.y != cur.y || nxt.z != cur.z) break;
                 run++;
             }
-            int r = std::min(cur.x, 255), g = std::min(cur.y, 255), b = std::min(cur.z, 255);
-            output_buf += "\033[" + std::to_string(x * 2 + 1) + "G\033[48;2;" +
-                std::to_string(r) + ';' + std::to_string(g) + ';' + std::to_string(b) + "m";
+            output_buf += "\033[";
+            append_uint(output_buf, x * 2 + 1);
+            output_buf += "G\033[48;2;";
+            append_uint(output_buf, cur.x > 255 ? 255 : cur.x < 0 ? 0 : cur.x);
+            output_buf += ';';
+            append_uint(output_buf, cur.y > 255 ? 255 : cur.y < 0 ? 0 : cur.y);
+            output_buf += ';';
+            append_uint(output_buf, cur.z > 255 ? 255 : cur.z < 0 ? 0 : cur.z);
+            output_buf += 'm';
             append_spans(output_buf, run * 2);
             x += run;
         }
@@ -369,8 +403,13 @@ Vec2 Screen::halton_sequence(int index) {
 }
 
 void Screen::show() const {
-    // Synchronized Update (DEC private mode 2026): terminal buffers the frame and
-    // atomically swaps on \x1b[?2026l, eliminating tearing and redundant repaints.
-    // Supported by iTerm2, Windows Terminal, Kitty, etc.
-    std::cout << "\x1b[?2026h" << output_buf << "\x1b[?2026l";
+    // WriteConsole bypasses C/C++ stream layers entirely — avoids intermittent
+    // blocking seen with std::cout when the terminal buffer back-pressures.
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD written;
+    const char pre[] = "\x1b[?2026h";
+    const char post[] = "\x1b[?2026l";
+    WriteConsoleA(hOut, pre, sizeof(pre) - 1, &written, nullptr);
+    WriteConsoleA(hOut, output_buf.data(), static_cast<DWORD>(output_buf.size()), &written, nullptr);
+    WriteConsoleA(hOut, post, sizeof(post) - 1, &written, nullptr);
 }
