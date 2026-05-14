@@ -87,6 +87,13 @@ inline void sleep_ms(int ms) {
     Sleep(static_cast<DWORD>(ms));
 }
 
+// Cooperative yield — yields the remainder of the current timeslice (~0μs delay).
+// On Windows, Sleep(0) is more efficient than std::this_thread::yield() because
+// it allows the scheduler to run ANY waiting thread, even lower-priority ones.
+inline void yield_thread() {
+    Sleep(0);
+}
+
 // Returns the number of physical cores (excludes hyperthreads, E-cores).
 // Worker threads = physical cores avoids contention from SMT / hybrid CPU architectures.
 inline int ideal_thread_count() {
@@ -253,6 +260,10 @@ inline int ideal_thread_count() {
 // thread_policy_set (macOS).  The core-count heuristic already avoids E-core
 // bottlenecks on hybrid CPUs because ideal_thread_count returns physical cores.
 inline void set_thread_affinity(int) {}
+
+inline void yield_thread() {
+    std::this_thread::yield();
+}
 
 } // namespace platform
 
