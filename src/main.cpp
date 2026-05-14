@@ -40,7 +40,7 @@
     r.set_aa(SSAA);
     ID mesh_id = r.add(meshes);
     ID light_id = r.add(lights);
-    r.set_camera_pos(Vec4(0, 20, 40, 1));
+    r.set_camera_pos(Vec4(0, 20, -40, 1));
     r.launch();
 
     auto all_meshes = r.operate_meshes(mesh_id);
