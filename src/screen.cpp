@@ -62,6 +62,21 @@ bool Screen::depth_test(const int x, const int y, const float z) const {
     return z_buffer[index] == 0 || z < z_buffer[index];
 }
 
+// Append spaces using REP CSI n b (repeat last char) when beneficial.
+// \x1b[ Nb  repeats the last graphic character N times — supported by
+// Windows Terminal, iTerm2, Kitty, xterm, etc.  Saves bandwidth for runs ≥ 3 pixels.
+static void append_spans(std::string& buf, int count) {
+    if (count <= 0) return;
+    if (count < 6) {  // runs ≤ 3 pixels: plain spaces are shorter than ESC sequence
+        buf.append(static_cast<size_t>(count), ' ');
+    } else {
+        buf += ' ';  // prime the repeat buffer with the space character
+        buf += "\x1b[";
+        buf += std::to_string(count - 1);
+        buf += 'b';
+    }
+}
+
 void Screen::clear() {
     buffer.assign(width * height, Vec3());
     z_buffer.assign(width * height, 0);
@@ -92,8 +107,8 @@ void Screen::draw() {
                     if (std::min(n.x, 255) != r || std::min(n.y, 255) != g || std::min(n.z, 255) != b) break;
                     run++;
                 }
-                output_buf += "\033[48;2;" + std::to_string(r) + ';' + std::to_string(g) + ';' + std::to_string(b) + "m" +
-                    std::string(static_cast<size_t>(run * 2), ' ');
+                output_buf += "\033[48;2;" + std::to_string(r) + ';' + std::to_string(g) + ';' + std::to_string(b) + "m";
+                append_spans(output_buf, run * 2);
                 x += run;
             }
             if (bias) output_buf += "\033[m ";
@@ -131,8 +146,8 @@ void Screen::draw() {
             }
             int r = std::min(cur.x, 255), g = std::min(cur.y, 255), b = std::min(cur.z, 255);
             output_buf += "\033[" + std::to_string(x * 2 + 1) + "G\033[48;2;" +
-                std::to_string(r) + ';' + std::to_string(g) + ';' + std::to_string(b) + "m" +
-                std::string(static_cast<size_t>(run * 2), ' ');
+                std::to_string(r) + ';' + std::to_string(g) + ';' + std::to_string(b) + "m";
+            append_spans(output_buf, run * 2);
             x += run;
         }
     }
