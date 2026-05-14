@@ -62,10 +62,15 @@ bool Screen::depth_test(const int x, const int y, const float z) const {
     return z_buffer[index] == 0 || z < z_buffer[index];
 }
 
-// Fast integer-to-string append for 0-999 (range covers all color values and coords).
-// Avoids std::to_string heap allocation in the hot draw path.
+// Fast integer-to-string append for 0-9999 (covers color values 0-255 and
+// cursor positions up to x*2+1 ≤ 1923).
 static void append_uint(std::string& buf, int n) {
-    if (n >= 100) {
+    if (n >= 1000) {
+        buf += static_cast<char>('0' + n / 1000);
+        buf += static_cast<char>('0' + (n / 100) % 10);
+        buf += static_cast<char>('0' + (n / 10) % 10);
+        buf += static_cast<char>('0' + n % 10);
+    } else if (n >= 100) {
         buf += static_cast<char>('0' + n / 100);
         buf += static_cast<char>('0' + (n / 10) % 10);
         buf += static_cast<char>('0' + n % 10);
