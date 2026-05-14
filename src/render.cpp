@@ -201,7 +201,7 @@ void Renderer::render_frame() {
     composite_layers();
 
     Stopwatch cmp_sw;
-    composite_frame();
+    composite_frame(frame_sw.elapsed_ms());
     t_composite += cmp_sw.elapsed_ms();
 
     t_total += frame_sw.elapsed_ms();
@@ -284,7 +284,7 @@ void Renderer::composite_layers() {
     overlay.composite_to(screen.buffer, screen.width, screen.height);
 }
 
-void Renderer::composite_frame() {
+void Renderer::composite_frame(double frame_time_ms) {
     Stopwatch sw_aa;
     // SSAA is handled per-worker (2x render → downsample → 1x write), no separate pass needed
     switch (aa_mode) {
@@ -298,7 +298,7 @@ void Renderer::composite_frame() {
     screen.draw();
     t_draw += sw_draw.elapsed_ms();
 
-    screen.calculate_fps();
+    screen.calculate_fps(frame_time_ms);
 
     Stopwatch sw_show;
     screen.show();

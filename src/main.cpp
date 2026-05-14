@@ -18,6 +18,5 @@
     while (true) {
         r.update();
         RubikCube::control(rubik_indices, rubik_mesh);
-        platform::sleep_ms(10);
     }
 }

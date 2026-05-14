@@ -172,15 +172,13 @@ void Screen::draw() {
     prev_buffer = buffer;
 }
 
-void Screen::calculate_fps() {
-    ++counter_t;
-    auto now = std::chrono::high_resolution_clock::now();
-    double dt = std::chrono::duration<double, std::milli>(now - hp_start).count();
-    if (counter_t >= 60 && dt > 0.001) {
-        fps = static_cast<int>(1000.0 * 60.0 / dt + 0.5);
-        hp_start = now;
-        counter_t = 0;
-    }
+void Screen::calculate_fps(double frame_time_ms) {
+    // Exponential moving average — smooth, responsive, no window size dependency
+    static double smooth_ms = 0.0;
+    if (smooth_ms < 0.001) smooth_ms = frame_time_ms;
+    constexpr float alpha = 0.05f;
+    smooth_ms = smooth_ms * (1.0 - alpha) + frame_time_ms * alpha;
+    fps = static_cast<int>(1000.0 / smooth_ms + 0.5);
 }
 
 void Screen::apply_ssaa() {

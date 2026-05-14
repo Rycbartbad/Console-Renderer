@@ -48,7 +48,7 @@ public:
     [[nodiscard]] virtual bool depth_test(const int x, const int y, const float z) const;
     void clear();
     void draw();
-    static void calculate_fps();
+    static void calculate_fps(double frame_time_ms);
     static int get_fps() { return fps; }
     void show() const;
     void apply_ssaa();
