@@ -147,11 +147,70 @@ inline int getch() {
 }
 
 inline void get_cursor_pos(int& x, int& y) {
-    x = y = 0;  // Not easily available on POSIX without termcap
+    // Query cursor position via ANSI DSR \x1b[6n — terminal responds \x1b[row;colR
+    // This gives the text cursor position as an approximation of mouse focus.
+    fflush(stdout);
+    write(STDOUT_FILENO, "\x1b[6n", 4);
+    
+    // Temporarily set stdin to blocked-but-timed mode to read the response
+    struct termios old, tmp;
+    tcgetattr(STDIN_FILENO, &old);
+    tmp = old;
+    tmp.c_lflag &= ~(ICANON | ECHO);
+    tmp.c_cc[VMIN] = 0;    // non-blocking minimum
+    tmp.c_cc[VTIME] = 1;   // 100 ms timeout
+    tcsetattr(STDIN_FILENO, TCSANOW, &tmp);
+    
+    char buf[32];
+    int pos = 0;
+    while (pos < 31) {
+        char c;
+        if (read(STDIN_FILENO, &c, 1) != 1) break;
+        buf[pos++] = c;
+        if (c == 'R') break;  // end of DSR response
+    }
+    tcsetattr(STDIN_FILENO, TCSANOW, &old);
+    buf[pos] = '\0';
+    
+    int row = 0, col = 0;
+    if (sscanf(buf, "\x1b[%d;%d", &row, &col) >= 2) {
+        x = col / 2;   // half-width character cells
+        y = row - 1;   // 0-based row
+    } else {
+        x = y = 0;
+    }
 }
 
 inline bool key_down(int vk) {
-    (void)vk; return false;  // No async key state on POSIX
+    // Track pressed keys by consuming pending stdin in non-blocking mode.
+    // Since terminals don't send key-release events, each press is tracked
+    // for ~150 ms then auto-cleared — good enough for WASD movement.
+    static bool state[256] = {false};
+    static std::chrono::steady_clock::time_point press_time[256];
+    static constexpr auto HOLD_MS = std::chrono::milliseconds(150);
+
+    auto now = std::chrono::steady_clock::now();
+
+    // Flush pending stdin into key state
+    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+    char c;
+    while (read(STDIN_FILENO, &c, 1) > 0) {
+        unsigned char uc = static_cast<unsigned char>(c);
+        // Arrow/function keys send \x1b[ ... sequences — ignore non-printable
+        if (uc >= 32 && uc <= 126) {
+            state[uc] = true;
+            press_time[uc] = now;
+        }
+    }
+    fcntl(STDIN_FILENO, F_SETFL, flags);
+
+    // Auto-clear expired holds
+    unsigned char uc = static_cast<unsigned char>(vk);
+    if (state[uc] && now - press_time[uc] > HOLD_MS)
+        state[uc] = false;
+
+    return state[uc];
 }
 
 inline void sleep_ms(int ms) {
