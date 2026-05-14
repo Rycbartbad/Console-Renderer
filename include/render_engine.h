@@ -2013,6 +2013,31 @@ Renderer::render_frame() {
     while (workers_done.load(std::memory_order_acquire) < num_threads)
         std::this_thread::yield();
     r_ww += ww.elapsed_ms();
+
+    // Build Hi-Z from screen.z_buffer (now populated by all tiles)
+    {
+        const int hw = max(1, screen.width / 8);
+        const int hh = max(1, screen.height / 8);
+        hiz_buffer.assign((size_t)hw * hh, 1e9f);
+        hiz_w = hw;
+        hiz_h = hh;
+        for (int y = 0; y < hh; y++)
+            for (int x = 0; x < hw; x++) {
+                float d = 1e9f;
+                for (int dy = 0; dy < 8; dy++)
+                    for (int dx = 0; dx < 8; dx++) {
+                        int sx = x * 8 + dx, sy = y * 8 + dy;
+                        if (sx < screen.width && sy < screen.height) {
+                            float zd = screen.z_buffer[sx + sy * screen.width];
+                            if (zd > 0.001f && zd < d)
+                                d = zd;
+                        }
+                    }
+                if (d < 1e8f)
+                    hiz_buffer[x + y * hw] = d;
+            }
+    }
+
     composite_layers();
     Stopwatch cs;
     composite_frame();
@@ -2166,10 +2191,20 @@ Renderer::render_tile(const Tile& tile, TileScreen& ts) {
                   (a0.x + a1.x + a2.x + a3.x) / 4, (a0.y + a1.y + a2.y + a3.y) / 4, (a0.z + a1.z + a2.z + a3.z) / 4));
             }
         size_t r1 = (size_t)screen.width;
-        for (int y = 0; y < th; y++)
+        for (int y = 0; y < th; y++) {
             memcpy(&screen.buffer[(size_t)tile.x_start + (size_t)(tile.y_start + y) * r1],
                    &ts.buffer[(size_t)y * (size_t)tw],
                    (size_t)tw * sizeof(Color));
+            // Downsample z: minimum of 2x2 block (nearest depth) → screen.z
+            for (int x = 0; x < tw; x++) {
+                size_t s = (size_t)(x * 2) + (size_t)(y * 2) * (size_t)tw2;
+                float zd = ts.z_buffer[s];
+                if (ts.z_buffer[s + 1] > 0.001f && ts.z_buffer[s + 1] < zd) zd = ts.z_buffer[s + 1];
+                if (ts.z_buffer[s + tw2] > 0.001f && ts.z_buffer[s + tw2] < zd) zd = ts.z_buffer[s + tw2];
+                if (ts.z_buffer[s + tw2 + 1] > 0.001f && ts.z_buffer[s + tw2 + 1] < zd) zd = ts.z_buffer[s + tw2 + 1];
+                screen.z_buffer[(size_t)tile.x_start + x + (size_t)(tile.y_start + y) * r1] = zd;
+            }
+        }
     } else {
         ts.resize_if_needed(screen.width, screen.height, tile.x_start, tile.y_start, tw, th);
         const Vec4* pp = frame_vert_proj.data();
@@ -2182,13 +2217,15 @@ Renderer::render_tile(const Tile& tile, TileScreen& ts) {
             pp += frame_meshes[mi].vertices.size();
         }
         size_t rw = (size_t)screen.width;
-        for (int y = 0; y < th; y++)
+        for (int y = 0; y < th; y++) {
             memcpy(&screen.buffer[(size_t)tile.x_start + (size_t)(tile.y_start + y) * rw],
                    &ts.buffer[(size_t)y * (size_t)tw],
                    (size_t)tw * sizeof(Color));
+            memcpy(&screen.z_buffer[(size_t)tile.x_start + (size_t)(tile.y_start + y) * rw],
+                   &ts.z_buffer[(size_t)y * (size_t)tw],
+                   (size_t)tw * sizeof(float));
+        }
     }
-    // HiZ depth downsampling is not active (tile z-buffers are local)
-    // Kept hiz_clear + hiz_test so API stays stable.
 }
 
 void
