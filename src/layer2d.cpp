@@ -116,7 +116,12 @@ void Layer2D::set_cell(int x, int y, char ch, Vec3 fg, Vec3 bg) {
     c.bg = bg; c.fg = fg; c.ch = ch; c.transparent = false; c.has_text = (ch != ' ');
 }
 
-void Layer2D::fill_rect(int x, int y, int w, int h, Vec3 bg) {
+// ── Normalized → pixel helpers ───────────────────────────────────────────
+static int n2x(float n, int dim) { return (int)(n * dim); }
+
+void Layer2D::fill_rect(float nx, float ny, float nw, float nh, Vec3 bg) {
+    int x = n2x(nx, m_width), y = n2x(ny, m_height);
+    int w = n2x(nw, m_width), h = n2x(nh, m_height);
     int x0 = std::max(0, x), y0 = std::max(0, y);
     int x1 = std::min(m_width, x + w), y1 = std::min(m_height, y + h);
     for (int row = y0; row < y1; row++)
@@ -126,7 +131,9 @@ void Layer2D::fill_rect(int x, int y, int w, int h, Vec3 bg) {
             m_cells[col + row * m_width].transparent = false;
 }
 
-void Layer2D::draw_border(int x, int y, int w, int h, Vec3 color) {
+void Layer2D::draw_border(float nx, float ny, float nw, float nh, Vec3 color) {
+    int x = n2x(nx, m_width), y = n2x(ny, m_height);
+    int w = n2x(nw, m_width), h = n2x(nh, m_height);
     for (int i = 1; i < w - 1; i++) {
         set_cell(x + i, y, '\xC4', color, color);
         set_cell(x + i, y + h - 1, '\xC4', color, color);
@@ -141,25 +148,62 @@ void Layer2D::draw_border(int x, int y, int w, int h, Vec3 color) {
     set_cell(x + w - 1, y + h - 1, '\xD9', color, color);
 }
 
-void Layer2D::draw_text(int x, int y, const std::string& text, Vec3 fg, Vec3 bg, int scale) {
-    if (scale < 1) scale = 1;
+void Layer2D::draw_text(float nx, float ny, const std::string& text, Vec3 fg, Vec3 bg, float scale) {
+    int ox = n2x(nx, m_width);
+    int oy = n2x(ny, m_height);
+    if (scale < 0.01f) scale = 0.01f;
+    const float inv_scale = 1.0f / scale;
+    // Supersampling: 2×2 per output cell → smooth coverage at any scale
+    static constexpr int SSAA = 2;
+    const float inv_ssaa = 1.0f / (SSAA * SSAA);
+
     for (size_t ci = 0; ci < text.size(); ci++) {
         unsigned char ch = (unsigned char)text[ci];
         if (ch < 32 || ch > 126) ch = '?';
-        int cx = x + (int)ci * 8 * scale;
-        for (int row = 0; row < 8; row++) {
-            uint8_t bits = FONT8x8[(ch - 32) * 8 + row];
-            for (int col = 0; col < 8; col++) {
-                if (!(bits & (0x80 >> col))) continue;
-                for (int dy = 0; dy < scale; dy++)
-                    for (int dx = 0; dx < scale; dx++)
-                        set_cell(cx + col * scale + dx, y + row * scale + dy, ' ', fg, bg);
+        int char_cells = (int)(8 * scale + 0.999f);  // ceil
+        int cx = ox + (int)(ci * 8 * scale);
+
+        for (int row = 0; row < char_cells; row++) {
+            for (int col = 0; col < char_cells; col++) {
+                // Region of this output cell in font-pixel space [0..8]
+                float fp_x0 = col * inv_scale;
+                float fp_y0 = row * inv_scale;
+                float fp_x1 = (col + 1) * inv_scale;
+                float fp_y1 = (row + 1) * inv_scale;
+
+                // Clamp to glyph bounds
+                if (fp_x0 >= 8.0f || fp_y0 >= 8.0f) continue;
+
+                // 2×2 SSAA: average coverage over the cell's region
+                int hits = 0;
+                for (int sy = 0; sy < SSAA; sy++) {
+                    for (int sx = 0; sx < SSAA; sx++) {
+                        float px = fp_x0 + (fp_x1 - fp_x0) * (sx + 0.5f) / SSAA;
+                        float py = fp_y0 + (fp_y1 - fp_y0) * (sy + 0.5f) / SSAA;
+                        int fi = (int)px;
+                        int fj = (int)py;
+                        if (fi >= 0 && fi < 8 && fj >= 0 && fj < 8) {
+                            if (FONT8x8[(ch - 32) * 8 + fj] & (0x80 >> fi))
+                                hits++;
+                        }
+                    }
+                }
+
+                if (hits == 0) continue;
+                float coverage = hits * inv_ssaa;
+                int r = (int)(fg.x * coverage + bg.x * (1.0f - coverage));
+                int g = (int)(fg.y * coverage + bg.y * (1.0f - coverage));
+                int b_ = (int)(fg.z * coverage + bg.z * (1.0f - coverage));
+                Vec3 color(r, g, b_);
+                set_cell(cx + col, oy + row, ' ', color, color);
             }
         }
     }
 }
 
-void Layer2D::draw_line(int x0, int y0, int x1, int y1, Vec3 color) {
+void Layer2D::draw_line(float nx0, float ny0, float nx1, float ny1, Vec3 color) {
+    int x0 = n2x(nx0, m_width), y0 = n2x(ny0, m_height);
+    int x1 = n2x(nx1, m_width), y1 = n2x(ny1, m_height);
     int dx = std::abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     int dy = -std::abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
     int err = dx + dy;

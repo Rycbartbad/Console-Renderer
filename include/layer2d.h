@@ -32,12 +32,16 @@ public:
     // Clear entire layer
     void clear(Vec3 bg = Vec3(0, 0, 0));
 
-    // ── Drawing primitives ───────────────────────────────────────────────
+    // ── Drawing primitives (normalized coords 0..1) ──────────────────────
+    // Pixel-level access (for internal / advanced use)
     void set_cell(int x, int y, char ch, Vec3 fg = Vec3(255,255,255), Vec3 bg = Vec3(0,0,0));
-    void fill_rect(int x, int y, int w, int h, Vec3 bg);
-    void draw_border(int x, int y, int w, int h, Vec3 color = Vec3(200,200,200));
-    void draw_text(int x, int y, const std::string& text, Vec3 fg = Vec3(255,255,255), Vec3 bg = Vec3(0,0,0), int scale = 1);
-    void draw_line(int x0, int y0, int x1, int y1, Vec3 color = Vec3(200,200,200));
+
+    // Normalized-coordinate drawing (nx, ny, nw, nh ∈ [0, 1])
+    void fill_rect(float nx, float ny, float nw, float nh, Vec3 bg);
+    void draw_border(float nx, float ny, float nw, float nh, Vec3 color = Vec3(200,200,200));
+    void draw_text(float nx, float ny, const std::string& text, Vec3 fg = Vec3(255,255,255),
+                   Vec3 bg = Vec3(0,0,0), float scale = 1.0f);
+    void draw_line(float nx0, float ny0, float nx1, float ny1, Vec3 color = Vec3(200,200,200));
 
     const Cell& cell(int x, int y) const { return m_cells[x + y * m_width]; }
     Cell& cell(int x, int y) { return m_cells[x + y * m_width]; }

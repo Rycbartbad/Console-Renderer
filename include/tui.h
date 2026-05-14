@@ -8,54 +8,49 @@
 #include <memory>
 #include <functional>
 
-// ── Base widget ──────────────────────────────────────────────────────────
+// ── Base widget (normalized coords 0..1) ────────────────────────────────
 class Widget {
 public:
-    Widget(int x, int y, int w, int h) : m_x(x), m_y(y), m_w(w), m_h(h) {}
+    Widget(float nx, float ny, float nw, float nh) : m_nx(nx), m_ny(ny), m_nw(nw), m_nh(nh) {}
     virtual ~Widget() = default;
     virtual void draw(Layer2D& layer) = 0;
-    virtual bool handle_click(int mx, int my) { return false; }
+    virtual bool handle_click(float nmx, float nmy) { return false; }
 
-    void set_pos(int x, int y) { m_x = x; m_y = y; }
-    void set_size(int w, int h) { m_w = w; m_h = h; }
-    int x() const { return m_x; }
-    int y() const { return m_y; }
-    int w() const { return m_w; }
-    int h() const { return m_h; }
+    void set_pos(float nx, float ny) { m_nx = nx; m_ny = ny; }
+    void set_size(float nw, float nh) { m_nw = nw; m_nh = nh; }
 
 protected:
-    int m_x, m_y, m_w, m_h;
+    float m_nx, m_ny, m_nw, m_nh;
 };
 
 // ── Label ────────────────────────────────────────────────────────────────
 class Label : public Widget {
 public:
-    Label(int x, int y, const std::string& text, Vec3 fg = Vec3(200,200,200), int font_scale = 1)
-        : Widget(x, y, (int)text.size() * 8 * font_scale, 8 * font_scale)
+    Label(float nx, float ny, const std::string& text, Vec3 fg = Vec3(200,200,200), float font_scale = 0.03f)
+        : Widget(nx, ny, text.size() * 8 * font_scale / 960.0f, 8 * font_scale / 330.0f)
         , m_text(text), m_fg(fg), m_scale(font_scale) {}
     void draw(Layer2D& layer) override;
     void set_text(const std::string& t) { m_text = t; }
-    void set_scale(int s) { m_scale = s; }
 private:
     std::string m_text;
     Vec3 m_fg;
-    int m_scale;
+    float m_scale;
 };
 
 // ── Button ───────────────────────────────────────────────────────────────
 class Button : public Widget {
 public:
-    Button(int x, int y, const std::string& text, std::function<void()> cb,
-           Vec3 bg = Vec3(60,60,60), Vec3 fg = Vec3(220,220,220), int font_scale = 1)
-        : Widget(x, y, (int)text.size() * 8 * font_scale + 4, 8 * font_scale + 4)
+    Button(float nx, float ny, const std::string& text, std::function<void()> cb,
+           Vec3 bg = Vec3(60,60,60), Vec3 fg = Vec3(220,220,220), float font_scale = 0.03f)
+        : Widget(nx, ny, (text.size() * 8 * font_scale + 4) / 960.0f, (8 * font_scale + 4) / 330.0f)
         , m_text(text), m_cb(cb), m_bg(bg), m_fg(fg), m_scale(font_scale) {}
     void draw(Layer2D& layer) override;
-    bool handle_click(int mx, int my) override;
+    bool handle_click(float nmx, float nmy) override;
 private:
     std::string m_text;
     std::function<void()> m_cb;
     Vec3 m_bg, m_fg;
-    int m_scale;
+    float m_scale;
 };
 
 // ── TUI manager ──────────────────────────────────────────────────────────
@@ -67,9 +62,9 @@ public:
         for (auto& w : m_widgets) w->draw(layer);
     }
 
-    bool handle_click(int mx, int my) {
+    bool handle_click(float nmx, float nmy) {
         for (auto& w : m_widgets)
-            if (w->handle_click(mx, my)) return true;
+            if (w->handle_click(nmx, nmy)) return true;
         return false;
     }
 
