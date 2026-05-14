@@ -151,41 +151,22 @@ void Layer2D::draw_border(float nx, float ny, float nw, float nh, Vec3 color) {
 void Layer2D::draw_text(float nx, float ny, const std::string& text, Vec3 fg, Vec3 bg, float scale) {
     int ox = n2x(nx, m_width);
     int oy = n2x(ny, m_height);
-    if (scale < 0.01f) scale = 0.01f;
-    const float inv_scale = 1.0f / scale;
-    // Supersampling: 2×2 per output cell → smooth coverage at any scale
-    static constexpr int SSAA = 2;
-    const float inv_ssaa = 1.0f / (SSAA * SSAA);
-
+    int cell_size = std::max(1, (int)(scale + 0.5f));  // rounded to nearest int
     for (size_t ci = 0; ci < text.size(); ci++) {
         unsigned char ch = (unsigned char)text[ci];
         if (ch < 32 || ch > 126) ch = '?';
-        int char_cells = (int)(8 * scale + 0.999f);  // ceil
-        int cx = ox + (int)(ci * 8 * scale);
-
-        for (int row = 0; row < char_cells; row++) {
-            for (int col = 0; col < char_cells; col++) {
-                // Region of this output cell in font-pixel space [0..8]
-                float fp_x0 = col * inv_scale;
-                float fp_y0 = row * inv_scale;
-                float fp_x1 = (col + 1) * inv_scale;
-                float fp_y1 = (row + 1) * inv_scale;
-
-                // Clamp to glyph bounds
-                if (fp_x0 >= 8.0f || fp_y0 >= 8.0f) continue;
-
-                // 2×2 SSAA: average coverage over the cell's region
-                int hits = 0;
-                for (int sy = 0; sy < SSAA; sy++) {
-                    for (int sx = 0; sx < SSAA; sx++) {
-                        float px = fp_x0 + (fp_x1 - fp_x0) * (sx + 0.5f) / SSAA;
-                        float py = fp_y0 + (fp_y1 - fp_y0) * (sy + 0.5f) / SSAA;
-                        int fi = (int)px;
-                        int fj = (int)py;
-                        if (fi >= 0 && fi < 8 && fj >= 0 && fj < 8) {
-                            if (FONT8x8[(ch - 32) * 8 + fj] & (0x80 >> fi))
-                                hits++;
-                        }
+        int cx = ox + (int)ci * 8 * cell_size;
+        for (int row = 0; row < 8; row++) {
+            uint8_t bits = FONT8x8[(ch - 32) * 8 + row];
+            for (int col = 0; col < 8; col++) {
+                if (!(bits & (0x80 >> col))) continue;
+                for (int dy = 0; dy < cell_size; dy++)
+                    for (int dx = 0; dx < cell_size; dx++)
+                        set_cell(cx + col * cell_size + dx, oy + row * cell_size + dy, ' ', fg, fg);
+            }
+        }
+    }
+}
                     }
                 }
 
