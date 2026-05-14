@@ -147,10 +147,10 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
         }
     }
 
-    // Apply one animation step per frame (non-blocking)
+    // Apply one animation step per frame (non-blocking, pi/18 × 9 = pi/2 = 90°)
     if (animating) {
         for (const int i : anim_blk)
-            Transform::rotate(*meshes[i], anim_axis, pi / (TOTAL_FRAMES + 1));
+            Transform::rotate(*meshes[i], anim_axis, pi / 18);
         if (--anim_frames <= 0)
             animating = false;
     }
