@@ -277,10 +277,11 @@ void Renderer::composite_layers() {
     }
     overlay.clear();
 
-    // FPS overlay (top-left, gray)
+    // FPS overlay
+    overlay.fill_rect(0.0f, 0.0f, 0.15f, 0.04f, Vec3(40, 40, 40));
     int fps = Screen::get_fps();
-    std::string fps_text = "FPS: " + std::to_string(fps);
-    overlay.draw_text(0.01f, 0.01f, fps_text, Vec3(180, 180, 180), Vec3(0, 0, 0), screen.width / 500.0f);
+    std::string fps_text = fps > 0 ? "FPS: " + std::to_string(fps) : "FPS: ...";
+    overlay.draw_text(0.01f, 0.005f, fps_text, Vec3(180, 180, 180), Vec3(40, 40, 40), screen.width / 500.0f);
 
     overlay.composite_to(screen.buffer, screen.width, screen.height);
 }
