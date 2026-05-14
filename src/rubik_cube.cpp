@@ -149,41 +149,6 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
                 Transform::rotate(blocks[i], waxis, pi/2);
             animating = true;
             anim_axis = axis;      // scene-relative for mesh animation
-            world_axis = waxis;
-            anim_blk = std::move(blk);
-            anim_frames = TOTAL_FRAMES;
-        }
-    }
-
-    // Apply one animation step per frame (non-blocking, pi/18 × 9 = 90°)
-    if (animating) {
-        for (const int i : anim_blk)
-            Transform::rotate(*meshes[i], anim_axis, pi / 18);
-        if (--anim_frames <= 0)
-            animating = false;
-    }
-
-        if (rotate) {
-            // Logical positions (blocks) use WORLD axes so face detection
-            // (blocks[i].x == 1 etc.) stays consistent across rotations.
-            // The visual rotation (anim_axis) uses axis_base for scene-relative animation.
-            switch (platform::getch()) {  // re-read to get the original key
-                default: break;  // key already consumed; we just need the stored axis
-            }
-            // Map face → world axis for logical-position rotation
-            Vec4 world_axis;
-            switch (toupper(last_key)) {
-                case 'F': world_axis = Vec4(0, 0, -1, 0); break;
-                case 'B': world_axis = Vec4(0, 0, 1, 0);  break;
-                case 'L': world_axis = Vec4(-1, 0, 0, 0); break;
-                case 'R': world_axis = Vec4(1, 0, 0, 0);  break;
-                case 'D': world_axis = Vec4(0, -1, 0, 0); break;
-                case 'U': world_axis = Vec4(0, 1, 0, 0);  break;
-            }
-            for (int i : blk)
-                Transform::rotate(blocks[i], world_axis, pi/2);
-            animating = true;
-            anim_axis = axis;      // scene-relative axis for mesh animation
             anim_blk = std::move(blk);
             anim_frames = TOTAL_FRAMES;
         }
