@@ -175,27 +175,26 @@ void Screen::draw() {
 }
 
 void Screen::calculate_fps(double frame_time_ms) {
-    // Every 10 frames: compute average FPS of the batch
-    static double batch_ms = 0.0;
+    // Batch-average every 10 frames, update display once per second
     static int batch_count = 0;
-    static double window_ms = 0.0;
+    static double batch_ms = 0.0;
+    static auto last_update = std::chrono::high_resolution_clock::now();
 
     batch_ms += frame_time_ms;
-    batch_count++;
-
-    if (batch_count >= 10) {
-        double avg_fps = 1000.0 / (batch_ms / batch_count);
+    if (++batch_count >= 10) {
+        double avg_fps = 1000.0 / (batch_ms / 10.0);
         if (avg_fps < fps_min) fps_min = avg_fps;
         if (avg_fps > fps_max) fps_max = avg_fps;
-        window_ms += batch_ms;
 
-        if (window_ms >= 1000.0) {
+        auto now = std::chrono::high_resolution_clock::now();
+        double elapsed = std::chrono::duration<double>(now - last_update).count();
+        if (elapsed >= 1.0) {
             char buf[64];
             std::snprintf(buf, sizeof(buf), "fps: %.0f/%.0f", fps_min, fps_max);
             fps_display = buf;
             fps_min = 1e9;
             fps_max = 0;
-            window_ms = 0.0;
+            last_update = now;
         }
 
         batch_ms = 0.0;
