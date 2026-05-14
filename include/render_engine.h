@@ -1755,7 +1755,7 @@ Layer2D::draw_text(float nx, float ny, const std::string& text, Vec3 fg, Vec3 bg
     int ox = n2x(nx, m_width), oy = n2x(ny, m_height), ch = max(1, (int)(m_height * scale));
     float is = 8.0f / ch;
     int nc = ch;
-    const int SS = 2;
+    const int SS = 1;
     float in = 1.0f / (SS * SS);
     for (size_t ci = 0; ci < text.size(); ci++) {
         unsigned char c = (unsigned char)text[ci];
