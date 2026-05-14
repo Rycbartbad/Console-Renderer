@@ -278,7 +278,7 @@ void Renderer::composite_layers() {
     overlay.clear();
 
     // FPS overlay
-    overlay.draw_text(0.01f, 0.01f, Screen::get_fps_display(), Vec3(200, 200, 200), Vec3(0, 0, 0), screen.width / 500.0f);
+    overlay.draw_text(0.01f, 0.01f, Screen::get_fps_display(), Vec3(200, 200, 200), Vec3(0, 0, 0), 0.03f);
 
     overlay.composite_to(screen.buffer, screen.width, screen.height);
 }

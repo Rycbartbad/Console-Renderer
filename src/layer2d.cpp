@@ -151,20 +151,19 @@ void Layer2D::draw_border(float nx, float ny, float nw, float nh, Vec3 color) {
 void Layer2D::draw_text(float nx, float ny, const std::string& text, Vec3 fg, Vec3 bg, float scale) {
     int ox = n2x(nx, m_width);
     int oy = n2x(ny, m_height);
-    if (scale < 0.01f) scale = 0.01f;
-    float inv_scale = 1.0f / scale;
-    // 2×2 SSAA per output cell → smooth coverage
+    // scale = fraction of screen height (0.1 = 10% = character 33 cells tall at 330px)
+    int char_h = std::max(1, (int)(m_height * scale));
+    float inv_scale = 8.0f / char_h;  // font-pixel units per cell
+    int ncells = char_h;               // one character = char_h × char_h cells
     int const SSAA = 2;
     float inv_n = 1.0f / (SSAA * SSAA);
 
     for (size_t ci = 0; ci < text.size(); ci++) {
         unsigned char ch = (unsigned char)text[ci];
         if (ch < 32 || ch > 126) ch = '?';
-        int ncells = (int)(8 * scale + 0.999f);  // ceil
-        int cx = ox + (int)(ci * 8 * scale);
+        int cx = ox + (int)(ci * char_h);
         for (int oy2 = 0; oy2 < ncells; oy2++) {
             for (int ox2 = 0; ox2 < ncells; ox2++) {
-                // Cell region in font-pixel space [0,8)
                 float f0x = ox2 * inv_scale;
                 float f0y = oy2 * inv_scale;
                 float f1x = (ox2 + 1) * inv_scale;
@@ -176,14 +175,25 @@ void Layer2D::draw_text(float nx, float ny, const std::string& text, Vec3 fg, Ve
                     for (int sx = 0; sx < SSAA; sx++) {
                         float px = f0x + (f1x - f0x) * (sx + 0.5f) / SSAA;
                         float py = f0y + (f1y - f0y) * (sy + 0.5f) / SSAA;
-                        int fi = (int)px;
-                        int fj = (int)py;
-                        if (fi < 0) fi = 0;
-                        if (fj < 0) fj = 0;
+                        int fi = (int)px; if (fi < 0) fi = 0;
+                        int fj = (int)py; if (fj < 0) fj = 0;
                         if (fi < 8 && fj < 8 &&
                             (FONT8x8[(ch - 32) * 8 + fj] & (0x80 >> fi)))
                             hits++;
                     }
+                }
+                if (hits == 0) continue;
+                float cov = hits * inv_n;
+                Vec3 col(
+                    (int)(fg.x * cov + bg.x * (1.0f - cov)),
+                    (int)(fg.y * cov + bg.y * (1.0f - cov)),
+                    (int)(fg.z * cov + bg.z * (1.0f - cov))
+                );
+                set_cell(cx + ox2, oy + oy2, ' ', col, col);
+            }
+        }
+    }
+}
                 }
                 if (hits == 0) continue;
                 float cov = hits * inv_n;
