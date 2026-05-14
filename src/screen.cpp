@@ -9,7 +9,6 @@ int Screen::fps = 0;
 
 Screen::Screen() {
     width = height = 0;
-    fps = 0;
     bias = false;
     SSAA = false;
     show_fps = false;
