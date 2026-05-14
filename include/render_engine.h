@@ -2182,29 +2182,23 @@ Renderer::render_tile(const Tile& tile, TileScreen& ts) {
             camera.load(ts, frame_meshes[mi], frame_lights, &c2, pp);
             pp += frame_meshes[mi].vertices.size();
         }
+        size_t r1 = (size_t)screen.width;
+        // Fused: downsample color + downsample z (min) → write both to screen
         for (int y = 0; y < th; y++)
             for (int x = 0; x < tw; x++) {
                 size_t s = (size_t)(x * 2) + (size_t)(y * 2) * (size_t)tw2;
                 Vec3 a0 = unpack_color(ts.buffer[s]), a1 = unpack_color(ts.buffer[s + 1]),
                      a2 = unpack_color(ts.buffer[s + tw2]), a3 = unpack_color(ts.buffer[s + tw2 + 1]);
-                ts.buffer[(size_t)x + (size_t)y * (size_t)tw] = pack_color(Vec3(
-                  (a0.x + a1.x + a2.x + a3.x) / 4, (a0.y + a1.y + a2.y + a3.y) / 4, (a0.z + a1.z + a2.z + a3.z) / 4));
-            }
-        size_t r1 = (size_t)screen.width;
-        for (int y = 0; y < th; y++) {
-            memcpy(&screen.buffer[(size_t)tile.x_start + (size_t)(tile.y_start + y) * r1],
-                   &ts.buffer[(size_t)y * (size_t)tw],
-                   (size_t)tw * sizeof(Color));
-            // Downsample z: minimum of 2x2 block (nearest depth) → screen.z
-            for (int x = 0; x < tw; x++) {
-                size_t s = (size_t)(x * 2) + (size_t)(y * 2) * (size_t)tw2;
+                size_t di = (size_t)(tile.x_start + x) + (size_t)(tile.y_start + y) * r1;
+                screen.buffer[di] = pack_color(
+                  Vec3((a0.x + a1.x + a2.x + a3.x) / 4, (a0.y + a1.y + a2.y + a3.y) / 4,
+                       (a0.z + a1.z + a2.z + a3.z) / 4));
                 float zd = ts.z_buffer[s];
                 if (ts.z_buffer[s + 1] > 0.001f && ts.z_buffer[s + 1] < zd) zd = ts.z_buffer[s + 1];
                 if (ts.z_buffer[s + tw2] > 0.001f && ts.z_buffer[s + tw2] < zd) zd = ts.z_buffer[s + tw2];
                 if (ts.z_buffer[s + tw2 + 1] > 0.001f && ts.z_buffer[s + tw2 + 1] < zd) zd = ts.z_buffer[s + tw2 + 1];
-                screen.z_buffer[(size_t)tile.x_start + x + (size_t)(tile.y_start + y) * r1] = zd;
+                screen.z_buffer[di] = zd;
             }
-        }
     } else {
         ts.resize_if_needed(screen.width, screen.height, tile.x_start, tile.y_start, tw, th);
         const Vec4* pp = frame_vert_proj.data();
