@@ -81,6 +81,7 @@ Mesh RubikCube::gen_block(const Vec4& pos, const float len) {
 }
 
 void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
+    // axis_base tracks the world axes as the scene is rotated by mouse
     static Vec4 axis_base[3] = {
         Vec4(1, 0, 0, 0),
         Vec4(0, 1, 0, 0),
@@ -102,32 +103,32 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
 
         switch (platform::getch()) {
             case 'f': // 前面
-                axis = Vec4(0, 0, -1, 0);
+                axis = axis_base[2] * (-1);
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].z == -1) { blk.push_back(i); rotate = true; }
                 break;
             case 'b': // 后面
-                axis = Vec4(0, 0, 1, 0);
+                axis = axis_base[2];
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].z == 1) { blk.push_back(i); rotate = true; }
                 break;
             case 'l': // 左面
-                axis = Vec4(-1, 0, 0, 0);
+                axis = axis_base[0] * (-1);
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].x == -1) { blk.push_back(i); rotate = true; }
                 break;
             case 'r': // 右面
-                axis = Vec4(1, 0, 0, 0);
+                axis = axis_base[0];
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].x == 1) { blk.push_back(i); rotate = true; }
                 break;
             case 'd': // 下面
-                axis = Vec4(0, -1, 0, 0);
+                axis = axis_base[1] * (-1);
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].y == -1) { blk.push_back(i); rotate = true; }
                 break;
             case 'u': // 上面
-                axis = Vec4(0, 1, 0, 0);
+                axis = axis_base[1];
                 for (int i = 0; i < 27; ++i)
                     if (blocks[i].y == 1) { blk.push_back(i); rotate = true; }
                 break;
@@ -136,10 +137,8 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
         }
 
         if (rotate) {
-            // Update logical positions immediately (90° rotation)
             for (int i : blk)
                 Transform::rotate(blocks[i], axis, pi/2);
-            // Start visual animation (spread across TOTAL_FRAMES frames)
             animating = true;
             anim_axis = axis;
             anim_blk = std::move(blk);
@@ -147,7 +146,7 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
         }
     }
 
-    // Apply one animation step per frame (non-blocking, pi/18 × 9 = pi/2 = 90°)
+    // Apply one animation step per frame (non-blocking, pi/18 × 9 = 90°)
     if (animating) {
         for (const int i : anim_blk)
             Transform::rotate(*meshes[i], anim_axis, pi / 18);
@@ -167,9 +166,9 @@ void RubikCube::control(Vec3* blocks, const std::vector<Mesh*> &meshes) {
             Transform::rotate(axis, Vec4(0, 1, 0, 0), angel_x);
             Transform::rotate(axis, Vec4(1, 0, 0, 0), angel_y);
         }
-        for (auto& mesh : meshes)
+        for (auto& mesh : meshes) {
             Transform::rotate(*mesh, Vec4(0, 1, 0, 0), angel_x);
-        for (auto& mesh : meshes)
             Transform::rotate(*mesh, Vec4(1, 0, 0, 0), angel_y);
+        }
     }
 }
