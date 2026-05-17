@@ -355,8 +355,9 @@ key_down(int vk) {
     return (GetAsyncKeyState(vk) & 0x8000) != 0;
 #else
     static bool state[256] = {};
+    static std::chrono::steady_clock::time_point pt[256]; // first press time
     static std::chrono::steady_clock::time_point lt[256]; // last byte time
-    static int count[256] = {};                           // bytes received in this press
+    static constexpr auto HOLD = std::chrono::milliseconds(150);
     int f = fcntl(STDIN_FILENO, F_GETFL, 0);
     fcntl(STDIN_FILENO, F_SETFL, f | O_NONBLOCK);
     int c;
@@ -377,31 +378,18 @@ key_down(int vk) {
         if (u >= 'a' && u <= 'z')
             u -= 32;
         if (u >= 32 && u <= 126) {
-            if (!state[u]) {
-                count[u] = 0;
-                state[u] = true;
-            }
-            count[u]++;
-            lt[u] = std::chrono::steady_clock::now();
+            if (!state[u])
+                pt[u] = std::chrono::steady_clock::now();
+            lt[u] = std::chrono::steady_clock::now(); // update on every byte
+            state[u] = true;
         }
     }
     clearerr(stdin);
     fcntl(STDIN_FILENO, F_SETFL, f);
     unsigned u = (unsigned char)vk;
-    if (state[u]) {
-        auto age = std::chrono::steady_clock::now() - lt[u];
-        if (count[u] == 1) {
-            // Single byte: could be a tap or initial delay of a hold.
-            // Use a generous timeout to bridge the terminal's repeat delay (~250-500ms)
-            // so held keys don't drop out during the gap.
-            if (age > std::chrono::milliseconds(600))
-                state[u] = false;
-        } else {
-            // Repeat phase: bytes arrive every ~30ms, release detection is sharp.
-            if (age > std::chrono::milliseconds(150))
-                state[u] = false;
-        }
-    }
+    // Release when no bytes arrive for HOLD ms (terminal key repeat keeps lt[u] fresh)
+    if (state[u] && std::chrono::steady_clock::now() - lt[u] > HOLD)
+        state[u] = false;
     return state[u];
 #endif
 }
