@@ -343,20 +343,9 @@ get_cursor_pos(int& x, int& y) {
     x = p.x;
     y = p.y;
 #else
-    // Arrow key → mouse simulation
-    int dx = s_arrow_dx;
-    int dy = s_arrow_dy;
-    // Decay: camera slows to stop when key released
-    if (s_arrow_dx > 2)      s_arrow_dx -= 2;
-    else if (s_arrow_dx > 0) s_arrow_dx--;
-    else if (s_arrow_dx < -2) s_arrow_dx += 2;
-    else if (s_arrow_dx < 0)  s_arrow_dx++;
-    if (s_arrow_dy > 2)      s_arrow_dy -= 2;
-    else if (s_arrow_dy > 0) s_arrow_dy--;
-    else if (s_arrow_dy < -2) s_arrow_dy += 2;
-    else if (s_arrow_dy < 0)  s_arrow_dy++;
-    x = dx * 8;
-    y = dy * 8;
+    // Arrow key → mouse simulation (no decay: offset persists when released)
+    x = s_arrow_dx * 8;
+    y = s_arrow_dy * 8;
 #endif
 }
 
