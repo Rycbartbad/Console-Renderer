@@ -2098,9 +2098,10 @@ Renderer::update() {
             platform::sleep_ms((int)((target - elapsed) / 1000));
         m_last_frame = std::chrono::steady_clock::now();
     }
-    double t0 = (double)clock() / CLOCKS_PER_SEC;
+    auto t0 = std::chrono::steady_clock::now();
     render_frame();
-    double fm = ((double)clock() / CLOCKS_PER_SEC - t0) * 1000.0;
+    double fm = std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - t0).count();
     screen.calculate_fps(fm);
 }
 
