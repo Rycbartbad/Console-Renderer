@@ -339,34 +339,7 @@ get_cursor_pos(int& x, int& y) {
     x = p.x;
     y = p.y;
 #else
-    fflush(stdout);
-    write(STDOUT_FILENO, "\x1b[6n", 4);
-    termios old, tmp;
-    tcgetattr(STDIN_FILENO, &old);
-    tmp = old;
-    tmp.c_lflag &= ~(ICANON | ECHO);
-    tmp.c_cc[VMIN] = 0;
-    tmp.c_cc[VTIME] = 1;
-    tcsetattr(STDIN_FILENO, TCSANOW, &tmp);
-    char buf[32];
-    int p = 0;
-    while (p < 31) {
-        char c;
-        if (read(STDIN_FILENO, &c, 1) != 1)
-            break;
-        buf[p++] = c;
-        if (c == 'R')
-            break;
-    }
-    tcsetattr(STDIN_FILENO, TCSANOW, &old);
-    buf[p] = '\0';
-    int r = 0, c = 0;
-    if (sscanf(buf, "\x1b[%d;%d", &r, &c) >= 2) {
-        x = c / 2;
-        y = r - 1;
-    } else {
-        x = y = 0;
-    }
+    x = y = 0;
 #endif
 }
 
