@@ -41,6 +41,7 @@
 *.dwo
 
 *.zip
+*.log
 .idea/
 build*/
 cmake-build-*/
