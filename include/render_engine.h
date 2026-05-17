@@ -340,6 +340,8 @@ get_cursor_pos(int& x, int& y) {
     y = p.y;
 #else
     fflush(stdout);
+    // Tiny pause to let terminal breathe — replaces pacing from removed DSR read loop
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
     x = y = 0;
 #endif
 }
