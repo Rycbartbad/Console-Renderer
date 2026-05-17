@@ -5,6 +5,7 @@
     Renderer r;
     r.set_camera_pos({ 0, 10, -20, 1 });
     r.set_aa(AA::SSAA);
+    r.set_target_fps(60);
     r.toggle_fps();
 
     auto meshes = Mesh::LoadOBJ("src/test.obj");

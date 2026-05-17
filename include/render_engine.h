@@ -339,7 +339,6 @@ get_cursor_pos(int& x, int& y) {
     x = p.x;
     y = p.y;
 #else
-    fflush(stdout);
     x = y = 0;
 #endif
 }
@@ -2090,7 +2089,6 @@ void
 Renderer::update() {
     screen.update();
     camera.update_from(screen);
-    render_frame();
     if (m_target_fps > 0) {
         auto now = std::chrono::steady_clock::now();
         int64_t elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -2100,11 +2098,14 @@ Renderer::update() {
             platform::sleep_ms((int)((target - elapsed) / 1000));
         m_last_frame = std::chrono::steady_clock::now();
     }
+    double t0 = (double)clock() / CLOCKS_PER_SEC;
+    render_frame();
+    double fm = ((double)clock() / CLOCKS_PER_SEC - t0) * 1000.0;
+    screen.calculate_fps(fm);
 }
 
 void
 Renderer::render_frame() {
-    Stopwatch sw;
     if ((size_t)screen.width * screen.height != screen.buffer.size()) {
         screen.buffer.assign(screen.width * screen.height, 0);
         screen.z_buffer.assign(screen.width * screen.height, 0);
@@ -2158,8 +2159,6 @@ Renderer::render_frame() {
 
     composite_layers();
     composite_frame();
-    double fm = sw.elapsed_ms();
-    screen.calculate_fps(fm);
 }
 
 void
