@@ -247,6 +247,10 @@ struct Stopwatch {
     void reset() { start = std::chrono::high_resolution_clock::now(); }
 };
 
+// Arrow-to-mouse look state (non-Windows)
+static int s_arrow_dx = 0;
+static int s_arrow_dy = 0;
+
 namespace platform {
 
 inline void
@@ -339,7 +343,20 @@ get_cursor_pos(int& x, int& y) {
     x = p.x;
     y = p.y;
 #else
-    x = y = 0;
+    // Arrow key → mouse simulation
+    int dx = s_arrow_dx;
+    int dy = s_arrow_dy;
+    // Decay: camera slows to stop when key released
+    if (s_arrow_dx > 2)      s_arrow_dx -= 2;
+    else if (s_arrow_dx > 0) s_arrow_dx--;
+    else if (s_arrow_dx < -2) s_arrow_dx += 2;
+    else if (s_arrow_dx < 0)  s_arrow_dx++;
+    if (s_arrow_dy > 2)      s_arrow_dy -= 2;
+    else if (s_arrow_dy > 0) s_arrow_dy--;
+    else if (s_arrow_dy < -2) s_arrow_dy += 2;
+    else if (s_arrow_dy < 0)  s_arrow_dy++;
+    x = dx * 8;
+    y = dy * 8;
 #endif
 }
 
@@ -353,8 +370,20 @@ key_down(int vk) {
     static constexpr auto HOLD = std::chrono::milliseconds(150);
     int f = fcntl(STDIN_FILENO, F_GETFL, 0);
     fcntl(STDIN_FILENO, F_SETFL, f | O_NONBLOCK);
-    char c;
-    while (read(STDIN_FILENO, &c, 1) > 0) {
+    int c;
+    while ((c = fgetc(stdin)) != EOF) {
+        // Arrow key escape sequence: \x1b[A / B / C / D
+        if (c == 0x1b) {
+            int c2 = fgetc(stdin);
+            if (c2 == '[') {
+                int c3 = fgetc(stdin);
+                if (c3 == 'A')      s_arrow_dy -= 1;
+                else if (c3 == 'B') s_arrow_dy += 1;
+                else if (c3 == 'C') s_arrow_dx += 1;
+                else if (c3 == 'D') s_arrow_dx -= 1;
+            }
+            continue; // escape bytes consumed, they were <32 or garbage anyway
+        }
         unsigned u = (unsigned char)c;
         // Normalize to uppercase so 'W' and 'w' both set state['W']
         if (u >= 'a' && u <= 'z')
@@ -365,6 +394,7 @@ key_down(int vk) {
             state[u] = true;
         }
     }
+    clearerr(stdin);
     fcntl(STDIN_FILENO, F_SETFL, f);
     unsigned u = (unsigned char)vk;
     if (state[u] && std::chrono::steady_clock::now() - pt[u] > HOLD)
