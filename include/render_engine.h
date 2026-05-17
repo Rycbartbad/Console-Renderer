@@ -376,22 +376,22 @@ key_down(int vk) {
     return (GetAsyncKeyState(vk) & 0x8000) != 0;
 #else
     static bool state[256] = {};
-    static auto pt[256] = std::chrono::steady_clock::now();
+    static std::chrono::steady_clock::time_point pt[256];
     static constexpr auto HOLD = std::chrono::milliseconds(150);
-    auto now = std::chrono::steady_clock::now();
     int f = fcntl(STDIN_FILENO, F_GETFL, 0);
     fcntl(STDIN_FILENO, F_SETFL, f | O_NONBLOCK);
     char c;
     while (read(STDIN_FILENO, &c, 1) > 0) {
         unsigned u = (unsigned char)c;
         if (u >= 32 && u <= 126) {
+            if (!state[u])
+                pt[u] = std::chrono::steady_clock::now();
             state[u] = true;
-            pt[u] = now;
         }
     }
     fcntl(STDIN_FILENO, F_SETFL, f);
     unsigned u = (unsigned char)vk;
-    if (state[u] && now - pt[u] > HOLD)
+    if (state[u] && std::chrono::steady_clock::now() - pt[u] > HOLD)
         state[u] = false;
     return state[u];
 #endif
