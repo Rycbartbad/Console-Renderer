@@ -356,6 +356,9 @@ key_down(int vk) {
     char c;
     while (read(STDIN_FILENO, &c, 1) > 0) {
         unsigned u = (unsigned char)c;
+        // Normalize to uppercase so 'W' and 'w' both set state['W']
+        if (u >= 'a' && u <= 'z')
+            u -= 32;
         if (u >= 32 && u <= 126) {
             if (!state[u])
                 pt[u] = std::chrono::steady_clock::now();
