@@ -339,6 +339,7 @@ get_cursor_pos(int& x, int& y) {
     x = p.x;
     y = p.y;
 #else
+    fflush(stdout);
     x = y = 0;
 #endif
 }
