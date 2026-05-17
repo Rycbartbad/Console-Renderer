@@ -340,8 +340,6 @@ get_cursor_pos(int& x, int& y) {
     y = p.y;
 #else
     fflush(stdout);
-    // Tiny pause to let terminal breathe — replaces pacing from removed DSR read loop
-    std::this_thread::sleep_for(std::chrono::milliseconds(2));
     x = y = 0;
 #endif
 }
@@ -691,6 +689,7 @@ class Renderer {
     void set_camera_pos(const Vec4& pos);
     void set_aa(AA mode);
     void toggle_fps();
+    void set_target_fps(int fps);
 
     ID add_meshes(const std::vector<Mesh>& meshes);
     void remove_meshes(ID id);
@@ -740,6 +739,8 @@ class Renderer {
     std::vector<Tile> tiles;
     std::atomic<int> tile_index{ 0 };
     AA aa_mode{ NOAA };
+    int m_target_fps = 0;
+    std::chrono::steady_clock::time_point m_last_frame;
 };
 
 // ============================================================
@@ -2081,10 +2082,24 @@ Renderer::~Renderer() {
 }
 
 void
+Renderer::set_target_fps(int fps) {
+    m_target_fps = fps;
+}
+
+void
 Renderer::update() {
     screen.update();
     camera.update_from(screen);
     render_frame();
+    if (m_target_fps > 0) {
+        auto now = std::chrono::steady_clock::now();
+        int64_t elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
+            now - m_last_frame).count();
+        int64_t target = 1000000 / m_target_fps;
+        if (elapsed < target)
+            platform::sleep_ms((int)((target - elapsed) / 1000));
+        m_last_frame = std::chrono::steady_clock::now();
+    }
 }
 
 void
