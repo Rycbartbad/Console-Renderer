@@ -2087,8 +2087,11 @@ Renderer::set_target_fps(int fps) {
 
 void
 Renderer::update() {
+    auto frame_start = std::chrono::steady_clock::now();
     screen.update();
     camera.update_from(screen);
+    render_frame();
+    // Frame limiter (after render, so sleep paces from previous frame end)
     if (m_target_fps > 0) {
         auto now = std::chrono::steady_clock::now();
         int64_t elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -2098,10 +2101,9 @@ Renderer::update() {
             platform::sleep_ms((int)((target - elapsed) / 1000));
         m_last_frame = std::chrono::steady_clock::now();
     }
-    auto t0 = std::chrono::steady_clock::now();
-    render_frame();
+    // FPS from total frame time (render + sleep + overhead)
     double fm = std::chrono::duration<double, std::milli>(
-        std::chrono::steady_clock::now() - t0).count();
+        std::chrono::steady_clock::now() - frame_start).count();
     screen.calculate_fps(fm);
 }
 
