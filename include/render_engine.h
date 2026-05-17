@@ -355,7 +355,8 @@ key_down(int vk) {
     return (GetAsyncKeyState(vk) & 0x8000) != 0;
 #else
     static bool state[256] = {};
-    static std::chrono::steady_clock::time_point pt[256];
+    static std::chrono::steady_clock::time_point pt[256]; // first press time
+    static std::chrono::steady_clock::time_point lt[256]; // last byte time
     static constexpr auto HOLD = std::chrono::milliseconds(150);
     int f = fcntl(STDIN_FILENO, F_GETFL, 0);
     fcntl(STDIN_FILENO, F_SETFL, f | O_NONBLOCK);
@@ -371,22 +372,23 @@ key_down(int vk) {
                 else if (c3 == 'C') s_arrow_dx += 1;
                 else if (c3 == 'D') s_arrow_dx -= 1;
             }
-            continue; // escape bytes consumed, they were <32 or garbage anyway
+            continue;
         }
         unsigned u = (unsigned char)c;
-        // Normalize to uppercase so 'W' and 'w' both set state['W']
         if (u >= 'a' && u <= 'z')
             u -= 32;
         if (u >= 32 && u <= 126) {
             if (!state[u])
                 pt[u] = std::chrono::steady_clock::now();
+            lt[u] = std::chrono::steady_clock::now(); // update on every byte
             state[u] = true;
         }
     }
     clearerr(stdin);
     fcntl(STDIN_FILENO, F_SETFL, f);
     unsigned u = (unsigned char)vk;
-    if (state[u] && std::chrono::steady_clock::now() - pt[u] > HOLD)
+    // Release when no bytes arrive for HOLD ms (terminal key repeat keeps lt[u] fresh)
+    if (state[u] && std::chrono::steady_clock::now() - lt[u] > HOLD)
         state[u] = false;
     return state[u];
 #endif
