@@ -196,6 +196,7 @@ class Mat4 {
 // ============================================================
 struct Material {
     float k_ambient, k_diffuse, k_specular;
+    float ns = 32.0f;              // specular exponent (shininess), MTL Ns
 };
 
 struct Light {
@@ -213,6 +214,9 @@ struct Mesh {
     float bounding_radius = 0;
     static Mesh Cube(const Vec4& center, float r, const std::vector<Vec3>& colors, const Material& material);
     static Mesh Plane(const Vec4& center, float r, const std::vector<Vec3>& colors, const Material& material);
+    static std::vector<Mesh> LoadOBJ(const char* path,
+                                     const std::vector<Vec3>& colors = {Vec3(200, 200, 200)},
+                                     const Material& material = Material{0.4f, 0.8f, 0.3f});
 };
 
 struct Tile {
@@ -487,7 +491,7 @@ class TileScreen : public Screen {
         z_buffer[i] = z;
         buffer[i] = pack_color(color);
     }
-    [[nodiscard]] bool depth_test(int x, int y, float z) const override {
+[[nodiscard]] bool depth_test(int x, int y, float z) const override {
         if (x < tile_x || x >= tile_x + tile_w || y < tile_y || y >= tile_y + tile_h)
             return false;
         size_t i = (size_t)(x - tile_x) + (size_t)(y - tile_y) * (size_t)tile_w;
@@ -585,6 +589,7 @@ class Transform {
     static void rotate(Mesh&, Vec4 axis, float angle);
     static void rotate(Vec4& dir, Vec4 axis, float angle);
     static void rotate(Vec3& point, Vec4 axis, float angle);
+    static void scale(Mesh& mesh, float s);
 };
 
 // ============================================================
@@ -791,49 +796,7 @@ using std::thread;
 using std::unique_lock;
 using std::vector;
 
-// ── FONT8x8 bitmap (ASCII 32-126) ──────────────────────────────
-static const uint8_t s_font8x8[95 * 8] = {
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x18, 0x18, 0x18, 0x18, 0x00, 0x18, 0x00, 0x6C, 0x6C, 0x6C,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x6C, 0x6C, 0xFE, 0x6C, 0xFE, 0x6C, 0x6C, 0x00, 0x18, 0x3E, 0x60, 0x3C, 0x06, 0x7C,
-    0x18, 0x00, 0x00, 0xC6, 0xCC, 0x18, 0x30, 0x66, 0xC6, 0x00, 0x38, 0x6C, 0x38, 0x76, 0xDC, 0xCC, 0x76, 0x00, 0x18,
-    0x18, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x18, 0x30, 0x30, 0x30, 0x18, 0x0C, 0x00, 0x30, 0x18, 0x0C, 0x0C,
-    0x0C, 0x18, 0x30, 0x00, 0x00, 0x66, 0x3C, 0xFF, 0x3C, 0x66, 0x00, 0x00, 0x00, 0x18, 0x18, 0x7E, 0x18, 0x18, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x18, 0x30, 0x00, 0x00, 0x00, 0x7E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x18, 0x18, 0x00, 0x06, 0x0C, 0x18, 0x30, 0x60, 0xC0, 0x80, 0x00, 0x38, 0x6C, 0xC6, 0xC6, 0xC6,
-    0x6C, 0x38, 0x00, 0x18, 0x38, 0x78, 0x18, 0x18, 0x18, 0x7E, 0x00, 0x7C, 0xC6, 0x06, 0x1C, 0x30, 0x60, 0xFE, 0x00,
-    0x7C, 0xC6, 0x06, 0x3C, 0x06, 0xC6, 0x7C, 0x00, 0x1C, 0x3C, 0x6C, 0xCC, 0xFE, 0x0C, 0x0C, 0x00, 0xFE, 0xC0, 0xFC,
-    0x06, 0x06, 0xC6, 0x7C, 0x00, 0x3C, 0x60, 0xC0, 0xFC, 0xC6, 0xC6, 0x7C, 0x00, 0xFE, 0x06, 0x0C, 0x18, 0x30, 0x60,
-    0x60, 0x00, 0x7C, 0xC6, 0xC6, 0x7C, 0xC6, 0xC6, 0x7C, 0x00, 0x7C, 0xC6, 0xC6, 0x7E, 0x06, 0x0C, 0x78, 0x00, 0x00,
-    0x18, 0x18, 0x00, 0x00, 0x18, 0x18, 0x00, 0x00, 0x18, 0x18, 0x00, 0x00, 0x18, 0x18, 0x30, 0x0C, 0x18, 0x30, 0x60,
-    0x30, 0x18, 0x0C, 0x00, 0x00, 0x00, 0x7E, 0x00, 0x7E, 0x00, 0x00, 0x00, 0x30, 0x18, 0x0C, 0x06, 0x0C, 0x18, 0x30,
-    0x00, 0x3C, 0x66, 0x06, 0x1C, 0x18, 0x00, 0x18, 0x00, 0x3C, 0x66, 0x6E, 0x6E, 0x60, 0x62, 0x3C, 0x00, 0x38, 0x6C,
-    0xC6, 0xFE, 0xC6, 0xC6, 0xC6, 0x00, 0xFC, 0x66, 0x66, 0x7C, 0x66, 0x66, 0xFC, 0x00, 0x3C, 0x66, 0xC0, 0xC0, 0xC0,
-    0x66, 0x3C, 0x00, 0xF8, 0x6C, 0x66, 0x66, 0x66, 0x6C, 0xF8, 0x00, 0xFE, 0x62, 0x68, 0x78, 0x68, 0x62, 0xFE, 0x00,
-    0xFE, 0x62, 0x68, 0x78, 0x68, 0x60, 0xF0, 0x00, 0x3C, 0x66, 0xC0, 0xC0, 0xCE, 0x66, 0x3E, 0x00, 0xC6, 0xC6, 0xC6,
-    0xFE, 0xC6, 0xC6, 0xC6, 0x00, 0x7E, 0x18, 0x18, 0x18, 0x18, 0x18, 0x7E, 0x00, 0x1E, 0x0C, 0x0C, 0x0C, 0xCC, 0xCC,
-    0x78, 0x00, 0xE6, 0x66, 0x6C, 0x78, 0x6C, 0x66, 0xE6, 0x00, 0xF0, 0x60, 0x60, 0x60, 0x62, 0x66, 0xFE, 0x00, 0xC6,
-    0xEE, 0xFE, 0xD6, 0xC6, 0xC6, 0xC6, 0x00, 0xC6, 0xE6, 0xF6, 0xDE, 0xCE, 0xC6, 0xC6, 0x00, 0x7C, 0xC6, 0xC6, 0xC6,
-    0xC6, 0xC6, 0x7C, 0x00, 0xFC, 0x66, 0x66, 0x7C, 0x60, 0x60, 0xF0, 0x00, 0x7C, 0xC6, 0xC6, 0xC6, 0xF6, 0xCE, 0x7C,
-    0x00, 0xFC, 0x66, 0x66, 0x7C, 0x6C, 0x66, 0xE6, 0x00, 0x7C, 0xC6, 0x60, 0x38, 0x0C, 0xC6, 0x7C, 0x00, 0xFF, 0x99,
-    0x18, 0x18, 0x18, 0x18, 0x3C, 0x00, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0x7C, 0x00, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6,
-    0x6C, 0x38, 0x00, 0xC6, 0xC6, 0xC6, 0xD6, 0xFE, 0xEE, 0xC6, 0x00, 0xC6, 0xC6, 0x6C, 0x38, 0x6C, 0xC6, 0xC6, 0x00,
-    0xC6, 0xC6, 0x6C, 0x38, 0x18, 0x18, 0x3C, 0x00, 0xFE, 0x86, 0x0C, 0x18, 0x30, 0x62, 0xFE, 0x00, 0x3C, 0x30, 0x30,
-    0x30, 0x30, 0x30, 0x3C, 0x00, 0xC0, 0x60, 0x30, 0x18, 0x0C, 0x06, 0x02, 0x00, 0x3C, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C,
-    0x3C, 0x00, 0x10, 0x38, 0x6C, 0xC6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x18,
-    0x18, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78, 0x0C, 0x7C, 0xCC, 0x76, 0x00, 0xE0, 0x60, 0x7C, 0x66,
-    0x66, 0x66, 0xDC, 0x00, 0x00, 0x00, 0x7C, 0xC6, 0xC0, 0xC6, 0x7C, 0x00, 0x1C, 0x0C, 0x7C, 0xCC, 0xCC, 0xCC, 0x76,
-    0x00, 0x00, 0x00, 0x7C, 0xC6, 0xFE, 0xC0, 0x7C, 0x00, 0x3C, 0x66, 0x60, 0xF8, 0x60, 0x60, 0xF0, 0x00, 0x00, 0x00,
-    0x76, 0xCC, 0xCC, 0x7C, 0x0C, 0xF8, 0xE0, 0x60, 0x6C, 0x76, 0x66, 0x66, 0xE6, 0x00, 0x18, 0x00, 0x38, 0x18, 0x18,
-    0x18, 0x3C, 0x00, 0x0C, 0x00, 0x1C, 0x0C, 0x0C, 0xCC, 0xCC, 0x78, 0xE0, 0x60, 0x66, 0x6C, 0x78, 0x6C, 0xE6, 0x00,
-    0x38, 0x18, 0x18, 0x18, 0x18, 0x18, 0x3C, 0x00, 0x00, 0x00, 0xEC, 0xFE, 0xD6, 0xC6, 0xC6, 0x00, 0x00, 0x00, 0xDC,
-    0x66, 0x66, 0x66, 0x66, 0x00, 0x00, 0x00, 0x7C, 0xC6, 0xC6, 0xC6, 0x7C, 0x00, 0x00, 0x00, 0xDC, 0x66, 0x66, 0x7C,
-    0x60, 0xF0, 0x00, 0x00, 0x76, 0xCC, 0xCC, 0x7C, 0x0C, 0x1E, 0x00, 0x00, 0xDC, 0x76, 0x60, 0x60, 0xF0, 0x00, 0x00,
-    0x00, 0x7C, 0xC0, 0x7C, 0x06, 0xFC, 0x00, 0x30, 0x30, 0xFC, 0x30, 0x30, 0x36, 0x1C, 0x00, 0x00, 0x00, 0xCC, 0xCC,
-    0xCC, 0xCC, 0x76, 0x00, 0x00, 0x00, 0xC6, 0xC6, 0xC6, 0x6C, 0x38, 0x00, 0x00, 0x00, 0xC6, 0xC6, 0xD6, 0xFE, 0x6C,
-    0x00, 0x00, 0x00, 0xC6, 0x6C, 0x38, 0x6C, 0xC6, 0x00, 0x00, 0x00, 0xC6, 0xC6, 0xC6, 0x7E, 0x06, 0xFC, 0x00, 0x00,
-    0xFE, 0x8C, 0x18, 0x32, 0xFE, 0x00, 0x0E, 0x18, 0x18, 0x70, 0x18, 0x18, 0x0E, 0x00, 0x18, 0x18, 0x18, 0x18, 0x18,
-    0x18, 0x18, 0x00, 0x70, 0x18, 0x18, 0x0E, 0x18, 0x18, 0x70, 0x00, 0x76, 0xDC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-};
+
 
 // ── 5×5 bitmap font (from saveData, 95 chars) ─────────────────
 static const uint8_t s_font3x5[95*5] = {
@@ -902,7 +865,258 @@ Mesh::Plane(const Vec4& center, float r, const std::vector<Vec3>& colors, const 
     return { center, verts, idx, auto_color(colors, (int)idx.size()), m, 1.4142136f * r };
 }
 
-// ── Screen static members ──────────────────────────────────────
+// ── OBJ + MTL loader ─────────────────────────────────────────────
+//  Parses Wavefront .obj files with optional .mtl material library.
+//  - Handles v / f (tri & quad), o/g grouping, mtllib / usemtl
+//  - MTL: newmtl, Ka, Kd, Ks, Ns, d/Tr
+//  - Returns one Mesh per (o/g) × (usemtl) combination.
+//  - Vertex indices: 1-based → 0-based, negative = relative.
+//
+//  Usage:
+//    auto meshes = Mesh::LoadOBJ("model.obj");
+//    ID id = renderer.add_meshes(meshes);
+//
+struct MtlEntry {
+    std::string name;
+    Vec3    diffuse = Vec3(200, 200, 200);
+    Material mat    = Material{0.4f, 0.8f, 0.3f};
+};
+
+// ── Parse a .mtl file ──────────────────────────────────────────
+static std::vector<MtlEntry>
+load_mtl(const char* path) {
+    std::vector<MtlEntry> result;
+    FILE* fp = fopen(path, "r");
+    if (!fp) return result;
+
+    char line[4096];
+    MtlEntry cur;
+    std::string cur_name;
+
+    auto flush = [&]() {
+        if (!cur_name.empty()) {
+            cur.name = cur_name;
+            result.push_back(cur);
+            cur_name.clear();
+        }
+    };
+
+    while (fgets(line, sizeof(line), fp)) {
+        char type[16];
+        if (sscanf(line, "%15s", type) != 1) continue;
+        if (type[0] == '#') continue;
+
+        if (strcmp(type, "newmtl") == 0) {
+            flush();
+            char buf[256] = {};
+            sscanf(line, "newmtl %255s", buf);
+            cur_name = buf;
+            cur = MtlEntry();
+        } else if (strcmp(type, "Ka") == 0) {
+            float r, g, b;
+            if (sscanf(line, "Ka %f %f %f", &r, &g, &b) >= 3)
+                cur.mat.k_ambient = (r + g + b) / 3.0f * 255.0f;
+        } else if (strcmp(type, "Kd") == 0) {
+            float r, g, b;
+            if (sscanf(line, "Kd %f %f %f", &r, &g, &b) >= 3)
+                cur.diffuse = Vec3((int)(r * 255), (int)(g * 255), (int)(b * 255));
+        } else if (strcmp(type, "Ks") == 0) {
+            float r, g, b;
+            if (sscanf(line, "Ks %f %f %f", &r, &g, &b) >= 3)
+                cur.mat.k_specular = (r + g + b) / 3.0f;
+        } else if (strcmp(type, "Ns") == 0) {
+            float ns;
+            if (sscanf(line, "Ns %f", &ns) == 1)
+                cur.mat.ns = ns;
+        }
+        // d / Tr (transparency) — not yet supported by the renderer
+    }
+    flush();
+    fclose(fp);
+    return result;
+}
+
+static int
+obj_vert_idx(int i, int count) {
+    if (i > 0) return i - 1;
+    if (i < 0) return count + i;
+    return 0;
+}
+
+static std::string
+obj_dir(const char* path) {
+    std::string p(path);
+    auto pos = p.find_last_of("/\\");
+    if (pos != std::string::npos)
+        p.resize(pos + 1);
+    else
+        p.clear();
+    return p;
+}
+
+static const MtlEntry*
+obj_find_mtl(const std::vector<MtlEntry>& lib, const char* name) {
+    for (auto& e : lib)
+        if (e.name == name) return &e;
+    return nullptr;
+}
+
+std::vector<Mesh>
+Mesh::LoadOBJ(const char* path, const std::vector<Vec3>& colors, const Material& material) {
+    std::vector<Mesh> result;
+    FILE* fp = fopen(path, "r");
+    if (!fp) return result;
+
+    // ── Pass 1: load referenced .mtl files ──────────────────────
+    std::vector<MtlEntry> mtl_lib;
+    std::string base = obj_dir(path);
+    {
+        char line[4096];
+        while (fgets(line, sizeof(line), fp)) {
+            char type[16];
+            if (sscanf(line, "%15s", type) != 1) continue;
+            if (strcmp(type, "mtllib") == 0) {
+                char mtl_path[1024];
+                if (sscanf(line, "mtllib %1023s", mtl_path) == 1) {
+                    auto loaded = load_mtl((base + mtl_path).c_str());
+                    mtl_lib.insert(mtl_lib.end(), loaded.begin(), loaded.end());
+                }
+            }
+        }
+    }
+    rewind(fp);
+
+    // ── Pass 2: parse geometry ─────────────────────────────────
+    std::vector<Vec4> verts;
+    verts.reserve(4096);
+    std::vector<int> indices;
+
+    // Current material state (falls back to function params)
+    Vec3 cur_color  = colors.empty() ? Vec3(200, 200, 200) : colors[0];
+    Material cur_mat = material;
+    bool has_content = false;
+
+    // Vertex dedup state (persists across flush calls)
+    std::vector<int> _vgen, _vremap;
+    int _vcur = 0;
+
+    auto flush = [&]() {
+        if (indices.empty()) return;
+        Mesh mesh;
+
+        // Only keep vertices referenced by indices → no bloat with many groups
+        ++_vcur;
+        std::vector<Vec4> local_verts;
+        std::vector<int>  local_idx;
+        local_verts.reserve(indices.size() / 3);
+        local_idx.reserve(indices.size());
+
+        for (int old_idx : indices) {
+            if ((size_t)old_idx >= _vgen.size()) {
+                _vgen.resize((size_t)old_idx + 1, 0);
+                _vremap.resize((size_t)old_idx + 1, 0);
+            }
+            if (_vgen[old_idx] != _vcur) {
+                _vgen[old_idx] = _vcur;
+                _vremap[old_idx] = (int)local_verts.size();
+                local_verts.push_back(verts[old_idx]);
+            }
+            local_idx.push_back(_vremap[old_idx]);
+        }
+
+        mesh.vertices = std::move(local_verts);
+        mesh.indices  = std::move(local_idx);
+        mesh.colors.assign(mesh.indices.size(), cur_color);
+        mesh.material = cur_mat;
+
+        // centroid
+        Vec4 c{0, 0, 0, 0};
+        for (auto& v : mesh.vertices) c = c + v;
+        if (!mesh.vertices.empty())
+            c = c * (1.0f / (float)mesh.vertices.size());
+        c.w = 1;
+        mesh.center = c;
+
+        float r = 0;
+        for (auto& v : mesh.vertices) {
+            float dx = v.x - c.x, dy = v.y - c.y, dz = v.z - c.z;
+            float d = sqrtf(dx * dx + dy * dy + dz * dz);
+            if (d > r) r = d;
+        }
+        mesh.bounding_radius = r;
+
+        result.push_back(std::move(mesh));
+        indices.clear();
+        has_content = false;
+    };
+
+    char line[4096];
+    while (fgets(line, sizeof(line), fp)) {
+        char type[16];
+        if (sscanf(line, "%15s", type) != 1) continue;
+        if (type[0] == '#') continue;
+
+        if (strcmp(type, "v") == 0 && type[1] == '\0') {
+            float x, y, z;
+            if (sscanf(line, "v %f %f %f", &x, &y, &z) >= 3)
+                verts.push_back({x, y, z, 1});
+        } else if (strcmp(type, "usemtl") == 0) {
+            if (has_content) flush();
+            char name[256] = {};
+            sscanf(line, "usemtl %255s", name);
+            auto* entry = obj_find_mtl(mtl_lib, name);
+            if (entry) {
+                cur_color = entry->diffuse;
+                cur_mat   = entry->mat;
+            }
+        } else if (strcmp(type, "o") == 0 || strcmp(type, "g") == 0) {
+            if (has_content) flush();
+        } else if (strcmp(type, "f") == 0) {
+            // Parse face — extract vertex indices (ignore vt/vn)
+            int v_idx[4] = {0}, count = 0;
+            const char* p = line + 1;
+            while (*p && count < 4) {
+                while (*p == ' ' || *p == '\t') ++p;
+                if (*p == '\0' || *p == '\n' || *p == '\r') break;
+                int sign = 1, val = 0;
+                if (*p == '-') { sign = -1; ++p; }
+                else if (*p == '+') ++p;
+                while (*p >= '0' && *p <= '9') {
+                    val = val * 10 + (*p - '0');
+                    ++p;
+                }
+                v_idx[count] = val * sign;
+                ++count;
+                while (*p && *p != ' ' && *p != '\t') ++p;  // skip /vt/vn tail
+            }
+            if (count < 3) continue;
+
+            int i0 = obj_vert_idx(v_idx[0], (int)verts.size());
+            int i1 = obj_vert_idx(v_idx[1], (int)verts.size());
+            int i2 = obj_vert_idx(v_idx[2], (int)verts.size());
+            if (i0 < 0 || i0 >= (int)verts.size() || i1 < 0 || i1 >= (int)verts.size() ||
+                i2 < 0 || i2 >= (int)verts.size())
+                continue;
+            // Flip winding → renderer expects CW in screen space (y-down)
+            indices.push_back(i0);
+            indices.push_back(i2);
+            indices.push_back(i1);
+            has_content = true;
+
+            if (count >= 4) {  // quad → fan triangulation
+                int i3 = obj_vert_idx(v_idx[3], (int)verts.size());
+                if (i3 >= 0 && i3 < (int)verts.size()) {
+                    indices.push_back(i0);
+                    indices.push_back(i2);
+                    indices.push_back(i3);
+                }
+            }
+        }
+    }
+    flush();
+    fclose(fp);
+    return result;
+}
 int Screen::counter_t = 0;
 int Screen::fps = 0;
 double Screen::fps_min = 1e9;
@@ -1251,31 +1465,32 @@ Camera::load(Screen& screen,
              const std::vector<Light>& lights,
              const Tile* clip_tile,
              const Vec4* proj_verts) const {
-    Vec4 vbuf[8];
     int vn = (int)mesh.vertices.size();
+    std::vector<Vec4> vbuf(vn);
+    Vec4* vbuf_ptr = vbuf.data();
     if (proj_verts)
         for (int i = 0; i < vn; i++)
-            vbuf[i] = proj_verts[i];
+            vbuf_ptr[i] = proj_verts[i];
     else
         for (int i = 0; i < vn; i++) {
             auto& s = mesh.vertices[i];
-            vbuf[i] = { s.x * n * 2 / width, -s.y * n * 2, (s.z * (f + n) - 2 * n * f) / (f - n), s.z };
+            vbuf_ptr[i] = { s.x * n * 2 / width, -s.y * n * 2, (s.z * (f + n) - 2 * n * f) / (f - n), s.z };
         }
     float sx = 0.5f * screen.width, sy = 0.5f * screen.height;
     if ((jitter_x != 0 || jitter_y != 0) && vn > 0) {
         float jx = jitter_x * 1.2f / screen.width, jy = jitter_y * 1.2f / screen.height;
         for (int i = 0; i < vn; i++)
-            if (vbuf[i].w > 0.001f) {
-                vbuf[i].x += jx * vbuf[i].w;
-                vbuf[i].y += jy * vbuf[i].w;
+            if (vbuf_ptr[i].w > 0.001f) {
+                vbuf_ptr[i].x += jx * vbuf_ptr[i].w;
+                vbuf_ptr[i].y += jy * vbuf_ptr[i].w;
             }
     }
     if (clip_tile && vn > 0) {
         float mnx = 1e9f, mxx = -1e9f, mny = 1e9f, mxy = -1e9f;
         for (int i = 0; i < vn; i++) {
-            if (vbuf[i].z < 1)
+            if (vbuf_ptr[i].z < -vbuf_ptr[i].w)
                 continue;
-            float iw = 1 / vbuf[i].w, px = vbuf[i].x * iw, py = vbuf[i].y * iw, scx = (px + 1) * sx,
+            float iw = 1 / vbuf_ptr[i].w, px = vbuf_ptr[i].x * iw, py = vbuf_ptr[i].y * iw, scx = (px + 1) * sx,
                   scy = (py + 1) * sy;
             if (scx < mnx)
                 mnx = scx;
@@ -1292,20 +1507,20 @@ Camera::load(Screen& screen,
     for (int ti = 0; ti + 2 < (int)mesh.indices.size(); ti += 3) {
         Vec3 color = mesh.colors[ti];
         int ia = mesh.indices[ti], ib = mesh.indices[ti + 1], ic = mesh.indices[ti + 2];
-        if (vbuf[ia].z < 1 && vbuf[ib].z < 1 && vbuf[ic].z < 1)
+        if (vbuf_ptr[ia].z < -vbuf_ptr[ia].w && vbuf_ptr[ib].z < -vbuf_ptr[ib].w && vbuf_ptr[ic].z < -vbuf_ptr[ic].w)
             continue;
         Vec4 cv[6];
         int cvn;
-        if (vbuf[ia].z >= -vbuf[ia].w && vbuf[ib].z >= -vbuf[ib].w && vbuf[ic].z >= -vbuf[ic].w) {
-            cv[0] = vbuf[ia];
-            cv[1] = vbuf[ib];
-            cv[2] = vbuf[ic];
+        if (vbuf_ptr[ia].z >= -vbuf_ptr[ia].w && vbuf_ptr[ib].z >= -vbuf_ptr[ib].w && vbuf_ptr[ic].z >= -vbuf_ptr[ic].w) {
+            cv[0] = vbuf_ptr[ia];
+            cv[1] = vbuf_ptr[ib];
+            cv[2] = vbuf_ptr[ic];
             cvn = 3;
         } else {
             cvn = 0;
-            cvn += near_clip(vbuf[ia], vbuf[ib], cv + cvn);
-            cvn += near_clip(vbuf[ib], vbuf[ic], cv + cvn);
-            cvn += near_clip(vbuf[ic], vbuf[ia], cv + cvn);
+            cvn += near_clip(vbuf_ptr[ia], vbuf_ptr[ib], cv + cvn);
+            cvn += near_clip(vbuf_ptr[ib], vbuf_ptr[ic], cv + cvn);
+            cvn += near_clip(vbuf_ptr[ic], vbuf_ptr[ia], cv + cvn);
         }
         if (cvn < 3)
             continue;
@@ -1398,7 +1613,15 @@ Camera::division(Vec4& i) {
 
 void
 Camera::controller() {
-    constexpr float spd = 0.1f;
+    // Delta time (frame-rate independent movement)
+    static auto last_t = std::chrono::high_resolution_clock::now();
+    auto now_t = std::chrono::high_resolution_clock::now();
+    float dt = std::chrono::duration<float>(now_t - last_t).count();
+    if (dt > 0.1f) dt = 0.1f;  // cap for large pauses
+    last_t = now_t;
+
+    constexpr float base_spd = 5.0f;
+    float spd = base_spd * dt;
     if (platform::key_down('W'))
         Transform::translate(pos, Vec4(sin(a_x), 0, cos(a_x), 0) * spd);
     if (platform::key_down('S'))
@@ -1520,7 +1743,7 @@ Line::fast_draw(Screen& s,
             double ad = al, bd = be, gd = ga, sum = ad + bd + gd;
             float id = (float)(1.0 / (ad * i0z + bd * i1z + gd * i2z)), dep = (float)(sum * id);
             size_t idx = (size_t)(p.x - tox) + (size_t)(p.y - toy) * (size_t)tw;
-            if (s.z_buffer[idx] == 0 || dep + 2e-7f < s.z_buffer[idx]) {
+            if (s.z_buffer[idx] == 0 || dep + 2e-7f <= s.z_buffer[idx]) {
                 s.z_buffer[idx] = dep;
                 Vec4 p3 = (v[0] * (float)(ad * i0z) + v[1] * (float)(bd * i1z) + v[2] * (float)(gd * i2z)) * id;
                 auto col = Vec3();
@@ -1586,8 +1809,6 @@ Triangle::scan_draw(Screen& s,
                     const Vec4* v,
                     const Vec4& dir,
                     const Tile* scissor) {
-    if ((a - b).cross(c - b) < 3)
-        return;
     Vec2 vs[3] = { a, b, c };
     if (vs[1].y < vs[2].y)
         swap(vs[1], vs[2]);
@@ -1612,19 +1833,11 @@ Triangle::scan_draw(Screen& s,
     int x = (int)((vs[1].y - vs[2].y) * (vs[0].x - vs[2].x) / (double)(vs[0].y - vs[2].y) + .5 + vs[2].x);
     Vec2 vt[3] = { a, b, c };
     fast_draw(s, Vec2(x, vs[1].y), vs[1], col, mat, lights, vt, v, dir, n, ambient_col, scissor);
-    float x1b, x2b;
-    if (x > vs[1].x) {
-        x1b = .05f;
-        x2b = -.05f;
-    } else {
-        x1b = -.05f;
-        x2b = .05f;
-    }
     float dy = vs[0].y - vs[1].y;
     for (int i = 0; i <= dy; i++)
         fast_draw(s,
-                  Vec2((vs[0].x * i + x * (dy - i)) / dy + x1b, vs[1].y + i),
-                  Vec2((vs[0].x * i + vs[1].x * (dy - i)) / dy + x2b, vs[1].y + i),
+                  Vec2((vs[0].x * i + x * (dy - i)) / dy, vs[1].y + i),
+                  Vec2((vs[0].x * i + vs[1].x * (dy - i)) / dy, vs[1].y + i),
                   col,
                   mat,
                   lights,
@@ -1637,8 +1850,8 @@ Triangle::scan_draw(Screen& s,
     dy = vs[1].y - vs[2].y;
     for (int i = 1; i <= dy; i++)
         fast_draw(s,
-                  Vec2((vs[2].x * i + x * (dy - i)) / dy + x1b, vs[1].y - i),
-                  Vec2((vs[2].x * i + vs[1].x * (dy - i)) / dy + x2b, vs[1].y - i),
+                  Vec2((vs[2].x * i + x * (dy - i)) / dy, vs[1].y - i),
+                  Vec2((vs[2].x * i + vs[1].x * (dy - i)) / dy, vs[1].y - i),
                   col,
                   mat,
                   lights,
@@ -1718,6 +1931,18 @@ Transform::rotate(Vec3& p, Vec4 axis, float a) {
     auto t = Vec4(p.x, p.y, p.z, 1);
     p = (t * cos(a) + axis.cross3(t) * sin(a) + axis * (axis * t) * (1 - cos(a))).to_vec3();
 }
+void
+Transform::scale(Mesh& mesh, float s) {
+    mesh.center.x *= s;
+    mesh.center.y *= s;
+    mesh.center.z *= s;
+    for (auto& v : mesh.vertices) {
+        v.x *= s;
+        v.y *= s;
+        v.z *= s;
+    }
+    mesh.bounding_radius *= s;
+}
 
 // ── Layer2D implementation ─────────────────────────────────────
 Layer2D::Layer2D(int w, int h, int z)
@@ -1782,8 +2007,7 @@ Layer2D::draw_border(float nx, float ny, float nw, float nh, Vec3 col) {
 void
 Layer2D::draw_text(float nx, float ny, const std::string& text, Vec3 fg, Vec3 bg, float scale) {
     int ox = n2x(nx, m_width), oy = n2x(ny, m_height), ch = max(1, (int)(m_height * scale));
-    int fh; const uint8_t* font;
-    if (ch <= 5) { fh = 5; font = s_font3x5; } else { fh = 8; font = s_font8x8; }
+    int fh = 5; const uint8_t* font = s_font3x5;
     float is = (float)fh / ch;
     int nc = ch;
     for (size_t ci = 0; ci < text.size(); ci++) {
@@ -1865,9 +2089,7 @@ Button::handle_click(float nmx, float nmy) {
 }
 
 // ── Renderer implementation ────────────────────────────────────
-static double r_prep = 0, r_ww = 0, r_cmp = 0, r_tot = 0, r_alloc = 0, r_aa = 0, r_drw = 0, r_shw = 0;
-static int r_cnt = 0;
-static constexpr int R_INTV = 60;
+
 static int
 hw_threads() {
     return max(1, (int)thread::hardware_concurrency());
@@ -1896,20 +2118,16 @@ Renderer::render_frame() {
         screen.buffer.assign(screen.width * screen.height, 0);
         screen.z_buffer.assign(screen.width * screen.height, 0);
     }
-    hiz_clear();
-    Stopwatch p1;
     prepare_frame();
     frustum_cull();
     camera.pre_project_verts(frame_meshes, frame_vert_proj);
-    r_prep += p1.elapsed_ms();
     // Fixed grid tile partition (avoids reallocation spikes from adaptive partitioning)
     tiles = partition_tiles(screen.width, screen.height, max(num_threads * 16, 128));
     if (aa_mode == TAA) {
         Vec2 j = Screen::halton_sequence(screen.get_taa_frame_count() + 1);
         camera.set_jitter(j.x / 1e6f, j.y / 1e6f);
-    } else
+    }     else
         camera.set_jitter(0, 0);
-    Stopwatch ww;
     tile_index.store(0, std::memory_order_relaxed);
     workers_done.store(0, std::memory_order_release);
     current_frame.fetch_add(1, std::memory_order_acq_rel);
@@ -1922,7 +2140,6 @@ Renderer::render_frame() {
     }
     while (workers_done.load(std::memory_order_acquire) < num_threads)
         std::this_thread::yield();
-    r_ww += ww.elapsed_ms();
 
     // Build Hi-Z from screen.z_buffer (now populated by all tiles)
     {
@@ -1949,42 +2166,9 @@ Renderer::render_frame() {
     }
 
     composite_layers();
-    Stopwatch cs;
     composite_frame();
-    r_cmp += cs.elapsed_ms();
     double fm = sw.elapsed_ms();
     screen.calculate_fps(fm);
-    r_tot += fm;
-    if (++r_cnt >= R_INTV) {
-        char buf[320];
-        int n = r_cnt;
-        snprintf(buf,
-                 sizeof(buf),
-                 "[PROFILE %4dx%-3d last %4d frames]  alloc=%5.2f  prep=%5.2f  worker=%6.2f  cmp(AA=%5.2f drw=%5.2f "
-                 "shw=%6.2f)=%6.2f  total=%6.2fms  FPS=%.0f\n",
-                 screen.width,
-                 screen.height,
-                 n,
-                 r_alloc / n,
-                 r_prep / n,
-                 r_ww / n,
-                 r_aa / n,
-                 r_drw / n,
-                 r_shw / n,
-                 r_cmp / n,
-                 r_tot / n,
-                 1000 / (r_tot / n));
-        FILE* fp = fopen("profile.log", "a");
-        if (fp) {
-            if (ftell(fp) == 0)
-                fputs("===== Profile Log =====\n", fp);
-            fputs(buf, fp);
-            fclose(fp);
-        }
-        r_alloc = r_prep = r_ww = r_cmp = r_tot = 0;
-        r_aa = r_drw = r_shw = 0;
-        r_cnt = 0;
-    }
 }
 
 void
@@ -2009,17 +2193,17 @@ Renderer::frustum_cull() {
             mesh_visible[i] = false;
             continue;
         }
-        float zt = max(cz, cn), hw = asp * zt * i2n;
+        float zt = max(cz + r, cn), hw = asp * zt * i2n;
         if (cx - r > hw || cx + r < -hw) {
-            mesh_visible[i] = false;
+            //mesh_visible[i] = false;
             continue;
         }
         float hh = zt * i2n;
         if (cy - r > hh || cy + r < -hh) {
-            mesh_visible[i] = false;
+            //mesh_visible[i] = false;
             continue;
         }
-        if (hiz_buffer.size() > 0 && hiz_test(cx, cy, cz, r))
+        if (hiz_test(cx, cy, cz, r))
             mesh_visible[i] = false;
     }
 }
@@ -2056,7 +2240,6 @@ Renderer::composite_layers() {
 
 void
 Renderer::composite_frame() {
-    Stopwatch sw;
     switch (aa_mode) {
         case FXAA:
             screen.apply_fxaa();
@@ -2067,13 +2250,8 @@ Renderer::composite_frame() {
         default:
             break;
     }
-    r_aa += sw.elapsed_ms();
-    Stopwatch s2;
     screen.draw();
-    r_drw += s2.elapsed_ms();
-    Stopwatch s3;
     screen.show();
-    r_shw += s3.elapsed_ms();
 }
 
 void
@@ -2263,15 +2441,23 @@ Renderer::hiz_clear() {
 }
 bool
 Renderer::hiz_test(float cx, float cy, float cz, float r) const {
-    if (cz < 1)
+    if (cz < 1 || hiz_w == 0 || hiz_h == 0)
         return false;
-    float sx = cx * screen.height / cz + screen.width * .5f, sy = -cy * screen.height / cz + screen.height * .5f,
+    // Project bounding sphere center + radius to screen space
+    float sx = cx * screen.height / cz + screen.width * .5f,
+          sy = -cy * screen.height / cz + screen.height * .5f,
           sr = max(1.0f, r * screen.height / cz);
-    int hx = (int)(sx / 8), hy = (int)(sy / 8);
-    if (hx < 0 || hx >= hiz_w || hy < 0 || hy >= hiz_h)
-        return false;
-    float hd = hiz_buffer[hx + hy * hiz_w];
-    return cz - r > hd + .5f;
+    int hx0 = max(0, (int)((sx - sr) / 8));
+    int hy0 = max(0, (int)((sy - sr) / 8));
+    int hx1 = min(hiz_w - 1, (int)((sx + sr) / 8));
+    int hy1 = min(hiz_h - 1, (int)((sy + sr) / 8));
+    // Only cull if ALL cells covered by the sphere have closer geometry
+    for (int hy = hy0; hy <= hy1; hy++)
+        for (int hx = hx0; hx <= hx1; hx++) {
+            if (cz - r <= hiz_buffer[hx + hy * hiz_w] + 1.0f)
+                return false;
+        }
+    return true;
 }
 void
 Renderer::hiz_update(int x, int y, int w, int h, const std::vector<float>& zb, int zw) {
