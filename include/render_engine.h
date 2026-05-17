@@ -367,8 +367,6 @@ key_down(int vk) {
     }
     fcntl(STDIN_FILENO, F_SETFL, f);
     unsigned u = (unsigned char)vk;
-    if (u >= 'a' && u <= 'z')
-        u -= 32;
     if (state[u] && std::chrono::steady_clock::now() - pt[u] > HOLD)
         state[u] = false;
     return state[u];
